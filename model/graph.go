@@ -1,5 +1,9 @@
 package model
 
+import (
+	"github.com/jmCodeCraft/go-network/algorithm"
+)
+
 type Graph struct {
 	Edges map[int][]int
 	Nodes map[int]bool
@@ -31,6 +35,6 @@ func (g *Graph) AddNodes(nodes map[int]bool) {
 	}
 }
 
-func (g *Graph) Sample(sampler *SamplingStrategy) (g Graph) {
-	return sampler.sample(g)
+func (g *Graph) Sample(sampler *algorithm.SamplingStrategy) (g Graph) {
+	return sampler.Sample(g)
 }

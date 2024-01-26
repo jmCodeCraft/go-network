@@ -10,9 +10,21 @@ import (
 
 type SamplingStrategy struct {
 	Graph model.Graph
+	Strategy string
 }
 
-func (strategy *SamplingStrategy) RandomNodeSampling(g *model.Graph, samplingRate float32) (ng model.Graph) {
+func (strategy *SamplingStrategy) Sample(g *model.Graph, samplingRate float32) (model.Graph) {
+	switch strategy.Strategy {
+		case "RN":
+			return strategy.randomNodeSampling(g, samplingRate)
+		case "RDN":
+			return strategy.randomDegreeNodeSampling(g, samplingRate)
+		default:
+			return strategy.randomNodeSampling(g, samplingRate)
+	}
+}
+
+func (strategy *SamplingStrategy) randomNodeSampling(g *model.Graph, samplingRate float32) (ng model.Graph) {
 	ng := model.Graph()
 	sampleSize := int(float32(len(g.Nodes)) * samplingRate)
 	for _, node := range rand.Perm(sampleSize) {
@@ -26,7 +38,7 @@ func (strategy *SamplingStrategy) RandomNodeSampling(g *model.Graph, samplingRat
 	return ng
 }
 
-func (strategy *SamplingStrategy) RandomDegreeNodeSampling(g *model.Graph, samplingRate float32) (ng model.Graph) {
+func (strategy *SamplingStrategy) randomDegreeNodeSampling(g *model.Graph, samplingRate float32) (ng model.Graph) {
 	ng := model.Graph()
 	sampleSize := int(float32(len(g.Nodes)) * samplingRate)
 
