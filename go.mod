@@ -1,3 +1,3 @@
-module go-network
+module github.com/jmCodeCraft/go-network
 
-go 1.21
+go 1.21.1

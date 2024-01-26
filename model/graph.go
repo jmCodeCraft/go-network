@@ -26,7 +26,7 @@ func (g *Graph) AddEdgesFromEdgeList(sourceNode int, edges []int) {
 }
 
 func (g *Graph) AddNodes(nodes map[int]bool) {
-	for node, _ := range nodes {
+	for node := range nodes {
 		g.AddNode(node)
 	}
 }

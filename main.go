@@ -1,17 +1,7 @@
 package main
 
-import (
-	"fmt"
-
-	"time-series-graphs/jozko"
-)
+import "fmt"
 
 func main() {
-	mojAvto := jozko.Auto{
-		Kolesa: 0,
-		Okna:   0,
-	}
-
-	fmt.Println(mojAvto.Kolesa)
-	jozko.F()
+	fmt.Println("hello world")
 }
