@@ -1,12 +1,12 @@
 package model
 
 type Graph struct {
-	Edges [][2]int
+	Edges map[int][]int
 	Nodes map[int]bool
 }
 
 func (g *Graph) AddEdge(node1, node2 int) {
-	g.Edges = append(g.Edges, [2]int{node1, node2})
+	g.Edges[node1] = append(g.Edges[node1], node2)
 }
 
 func (g *Graph) AddNode(node int) {
@@ -29,4 +29,8 @@ func (g *Graph) AddNodes(nodes map[int]bool) {
 	for node := range nodes {
 		g.AddNode(node)
 	}
+}
+
+func (g *Graph) Sample(sampler *SamplingStrategy) (g Graph) {
+	return sampler.sample(g)
 }
