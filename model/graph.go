@@ -37,6 +37,6 @@ func (g *Graph) AddNodes(nodes map[int]bool) {
 	}
 }
 
-func (g *Graph) Sample(sampler *algorithm.SamplingStrategy) (g Graph) {
-	return sampler.Sample(g)
+func (g *Graph) Sample(sampler *algorithm.SamplingStrategy, samplingRate float32) Graph {
+	return sampler.Sample(g, samplingRate)
 }
