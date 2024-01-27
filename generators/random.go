@@ -31,3 +31,43 @@ func FastGNPRandomGraph(numberOfNodes int, probabilityForEdgeCreation float64) (
 	}
 	return g
 }
+
+// In the $G_{n,m}$ model, a graph is chosen uniformly at random from the set
+// of all graphs with $n$ nodes and $m$ edges.
+// Algorithm by Keith M. Briggs Mar 31, 2006.
+// Inspired by Knuth's Algorithm S (Selection sampling technique),
+// in section 3.4.2 of [1]
+// References: [1] Donald E. Knuth, The Art of Computer Programming,
+// Volume 2/Seminumerical algorithms, Third Edition, Addison-Wesley, 1997.
+func DenseGNMRandomGraph(numberOfNodes int, numberOfEdges int) (g model.Graph) {
+	edgesMax := numberOfNodes * (numberOfNodes - 1) // 2
+	if numberOfEdges >= edgesMax {
+		return complete_graph(n)
+	} else {
+		g = model.Graph{
+			Edges: nil,
+			Nodes: nil,
+		}
+	}
+	if numberOfNodes == 1 || numberOfEdges >= edgesMax {
+		return g
+	}
+
+	u, v, t, k := 0, 0, 0, 0
+	for true {
+		if (t + rand.Int()*(edgesMax-t)) < (numberOfEdges - k) {
+			g.AddEdge(u, v)
+			k = k + 1
+			if k == numberOfEdges {
+				return g
+			}
+		}
+		t = t + 1
+		v = v + 1
+		if v == numberOfNodes {
+			u = u + 1
+			v = u + 1
+		}
+	}
+	return g
+}
