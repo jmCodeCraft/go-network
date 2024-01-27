@@ -10,6 +10,8 @@ type Graph struct {
 }
 
 func (g *Graph) AddEdge(node1, node2 int) {
+	g.AddNode(node1)
+	g.AddNode(node2)
 	g.Edges[node1] = append(g.Edges[node1], node2)
 }
 
