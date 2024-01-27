@@ -42,12 +42,9 @@ func FastGNPRandomGraph(numberOfNodes int, probabilityForEdgeCreation float64) (
 func DenseGNMRandomGraph(numberOfNodes int, numberOfEdges int) (g model.Graph) {
 	edgesMax := numberOfNodes * (numberOfNodes - 1) // 2
 	if numberOfEdges >= edgesMax {
-		return complete_graph(n)
+		return CompleteGraph(numberOfNodes)
 	} else {
-		g = model.Graph{
-			Edges: nil,
-			Nodes: nil,
-		}
+		g = EmptyGraph()
 	}
 	if numberOfNodes == 1 || numberOfEdges >= edgesMax {
 		return g

@@ -1,7 +1,6 @@
 package algorithm
 
 import (
-	"fmt"
 	"math/rand"
 
 	"github.com/jmCodeCraft/go-network/model",
