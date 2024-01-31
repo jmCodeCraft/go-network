@@ -9,11 +9,8 @@ import (
 
 // Returns a $G_{n,p}$ random graph, also known as an Erdős-Rényi graph or a binomial graph.
 // References: [1] Vladimir Batagelj and Ulrik Brandes, "Efficient generation of large random networks", Phys. Rev. E, 71, 036113, 2005.
-func FastGNPRandomGraph(numberOfNodes int, probabilityForEdgeCreation float64) (g model.Graph) {
-	g = model.Graph{
-		Edges: nil,
-		Nodes: nil,
-	}
+func FastGNPRandomGraph(numberOfNodes int, probabilityForEdgeCreation float64) (g model.UndirectedGraph) {
+	g = EmptyGraph()
 	lp := math.Log(1.0 - probabilityForEdgeCreation)
 	// Nodes in graph are from 0,n-1 (start with v as the second node index).
 	v := 1
@@ -25,7 +22,7 @@ func FastGNPRandomGraph(numberOfNodes int, probabilityForEdgeCreation float64) (
 			w = w - v
 			v = v + 1
 			if v < numberOfNodes {
-				g.AddEdge(v, w)
+				g.AddEdge(model.Edge{model.Node{v}, model.Node{w}})
 			}
 		}
 	}
@@ -39,7 +36,7 @@ func FastGNPRandomGraph(numberOfNodes int, probabilityForEdgeCreation float64) (
 // in section 3.4.2 of [1]
 // References: [1] Donald E. Knuth, The Art of Computer Programming,
 // Volume 2/Seminumerical algorithms, Third Edition, Addison-Wesley, 1997.
-func DenseGNMRandomGraph(numberOfNodes int, numberOfEdges int) (g model.Graph) {
+func DenseGNMRandomGraph(numberOfNodes int, numberOfEdges int) (g model.UndirectedGraph) {
 	edgesMax := numberOfNodes * (numberOfNodes - 1) // 2
 	if numberOfEdges >= edgesMax {
 		return CompleteGraph(numberOfNodes)
@@ -53,7 +50,7 @@ func DenseGNMRandomGraph(numberOfNodes int, numberOfEdges int) (g model.Graph) {
 	u, v, t, k := 0, 0, 0, 0
 	for true {
 		if (t + rand.Int()*(edgesMax-t)) < (numberOfEdges - k) {
-			g.AddEdge(u, v)
+			g.AddEdge(model.Edge{model.Node{u}, model.Node{v}})
 			k = k + 1
 			if k == numberOfEdges {
 				return g

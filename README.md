@@ -3,6 +3,24 @@
 
 Go-Network is a Go package for the creation, manipulation, and study of the structure, dynamics, and functions of complex networks.
 
+#### Supported graph generation algorithms
+- Classic algorithms
+  - [Empty graph]()
+  - [Complete graph]()
+  - [Ladder graph]()
+  - [Circular ladder graph]()
+  - 
+- Random graphs
+  - Erdős-Rényi
+  - [Dense Random graph]()
+  - 
+
+#### Supported graph sampling algorithms
+ - [Random Node]()
+ - [Random Degree Node]()
+ - 
+
+
 # Contribution Guidelines
 
 Thank you for considering contributing to our project! Before you start, please take a moment to read the following guidelines.
