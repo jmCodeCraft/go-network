@@ -1,16 +1,37 @@
-package generators
+package model
 
 import (
 	"math"
 	"math/rand"
-
-	"github.com/jmCodeCraft/go-network/model"
 )
 
+// FastGNPRandomGraph generates a random undirected graph using the G(n,p) model,
+// where n is the number of nodes and p is the probability of edge creation between nodes.
+// The algorithm efficiently constructs the graph by avoiding unnecessary calculations
+// and improving overall performance.
+//
+// Parameters:
+//   - numberOfNodes: The total number of nodes in the graph.
+//   - probabilityForEdgeCreation: The probability of creating an edge between any two nodes,
+//     ranging from 0.0 (no edges) to 1.0 (fully connected graph).
+//
+// Returns:
+//
+//	An UndirectedGraph generated using the G(n,p) model, with edges connecting nodes based on
+//	the specified probability.
+//
+// Note:
+//
+//	The graph's nodes are labeled from 0 to n-1, and the edge creation follows a fast
+//	non-uniform random process. This implementation is efficient for large graphs with
+//	sparse connections.
+//
 // Returns a $G_{n,p}$ random graph, also known as an Erdős-Rényi graph or a binomial graph.
 // References: [1] Vladimir Batagelj and Ulrik Brandes, "Efficient generation of large random networks", Phys. Rev. E, 71, 036113, 2005.
-func FastGNPRandomGraph(numberOfNodes int, probabilityForEdgeCreation float64) (g model.UndirectedGraph) {
-	g = EmptyGraph()
+func FastGNPRandomGraph(numberOfNodes int, probabilityForEdgeCreation float64) (g UndirectedGraph) {
+	g = UndirectedGraph{}
+	g.Edges = make(map[int][]int)
+	g.Nodes = make(map[int]bool)
 	lp := math.Log(1.0 - probabilityForEdgeCreation)
 	// Nodes in graph are from 0,n-1 (start with v as the second node index).
 	v := 1
@@ -22,7 +43,7 @@ func FastGNPRandomGraph(numberOfNodes int, probabilityForEdgeCreation float64) (
 			w = w - v
 			v = v + 1
 			if v < numberOfNodes {
-				g.AddEdge(model.Edge{model.Node{v}, model.Node{w}})
+				g.AddEdge(Edge{Node{v}, Node{w}})
 			}
 		}
 	}
@@ -36,21 +57,21 @@ func FastGNPRandomGraph(numberOfNodes int, probabilityForEdgeCreation float64) (
 // in section 3.4.2 of [1]
 // References: [1] Donald E. Knuth, The Art of Computer Programming,
 // Volume 2/Seminumerical algorithms, Third Edition, Addison-Wesley, 1997.
-func DenseGNMRandomGraph(numberOfNodes int, numberOfEdges int) (g model.UndirectedGraph) {
+func DenseGNMRandomGraph(numberOfNodes int, numberOfEdges int) (g UndirectedGraph) {
 	edgesMax := numberOfNodes * (numberOfNodes - 1) // 2
 	if numberOfEdges >= edgesMax {
 		return CompleteGraph(numberOfNodes)
 	} else {
-		g = EmptyGraph()
+		g = UndirectedGraph{}
 	}
 	if numberOfNodes == 1 || numberOfEdges >= edgesMax {
 		return g
 	}
 
 	u, v, t, k := 0, 0, 0, 0
-	for true {
+	for {
 		if (t + rand.Int()*(edgesMax-t)) < (numberOfEdges - k) {
-			g.AddEdge(model.Edge{model.Node{u}, model.Node{v}})
+			g.AddEdge(Edge{Node{u}, Node{v}})
 			k = k + 1
 			if k == numberOfEdges {
 				return g
@@ -63,5 +84,4 @@ func DenseGNMRandomGraph(numberOfNodes int, numberOfEdges int) (g model.Undirect
 			v = u + 1
 		}
 	}
-	return g
 }
