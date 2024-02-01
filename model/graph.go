@@ -1,18 +1,21 @@
 package model
 
-import (
-	"github.com/jmCodeCraft/go-network/algorithm"
-)
+import "fmt"
 
 type Graph interface {
-	(g *Graph) AddEdge(edge Edge)
-	(g *Graph) AddNode(node Node)
-	(g *Graph) GetEdgeTuples() []Edge
+	AddEdge(edge Edge)
+	AddNode(node Node)
+	GetEdgeTuples() []Edge
+	Sample(sampler *SamplingStrategy, samplingRate float32) Graph
 }
 
 type UndirectedGraph struct {
 	Nodes map[int]bool
 	Edges map[int][]int
+}
+
+func (g UndirectedGraph) String() string {
+	return fmt.Sprintf("graph has %d nodes and %d edges", len(g.Nodes), len(g.Edges))
 }
 
 type Edge struct {
@@ -52,6 +55,7 @@ func (g *UndirectedGraph) AddNodes(nodes map[int]bool) {
 	}
 }
 
+// todo suggest rename to GetEdges
 func (g *UndirectedGraph) GetEdgeTuples() []Edge {
 	var edges []Edge
 	for node1, array := range g.Edges {
@@ -62,6 +66,6 @@ func (g *UndirectedGraph) GetEdgeTuples() []Edge {
 	return edges
 }
 
-func (g *UndirectedGraph) Sample(sampler *algorithm.SamplingStrategy, samplingRate float32) Graph {
+func (g *UndirectedGraph) Sample(sampler SamplingStrategy, samplingRate float32) UndirectedGraph {
 	return sampler.Sample(g, samplingRate)
 }

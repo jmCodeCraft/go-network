@@ -37,7 +37,7 @@ func FromAdjacencyListFile(filename string) error {
 //
 // Each line specifies...
 func FromAdjacencyList(reader io.Reader) {
-	g := model.Graph{}
+	g := model.UndirectedGraph{}
 
 	csvReader := csv.NewReader(reader)
 	lineCount := 0
@@ -50,7 +50,7 @@ func FromAdjacencyList(reader io.Reader) {
 			return
 		}
 		slog.Info(fmt.Sprintf("read: %+v", read))
-		g.AddEdgesFromEdgeList(lineCount, lineToList(read))
+		g.AddEdgesFromIntEdgeList(lineCount, lineToList(read))
 		lineCount++
 	}
 
