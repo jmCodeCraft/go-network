@@ -16,7 +16,7 @@ func BenchmarkFastGNPRandomGraph(b *testing.B) {
 	// Run the benchmark
 	for i := 0; i < b.N; i++ {
 		// Reset the random seed for each iteration to ensure consistent results
-		rand.Seed(int64(i))
+		rand.NewSource(int64(i))
 
 		// Run the FastGNPRandomGraph function
 		g := FastGNPRandomGraph(numberOfNodes, probabilityForEdgeCreation)

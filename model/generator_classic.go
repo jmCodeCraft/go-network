@@ -1,12 +1,12 @@
 package model
 
-func CompleteGraph(numberOfNodes int) (g UndirectedGraph) {
-	g = UndirectedGraph{}
-	for i := 0; i <= numberOfNodes; i++ {
-		for j := i + 1; j <= numberOfNodes; i++ {
+func CompleteGraph(numberOfNodes int) *UndirectedGraph {
+	g := &UndirectedGraph{}
+	for i := 0; i < numberOfNodes; i++ {
+		for j := i + 1; j < numberOfNodes; j++ {
 			g.AddEdge(Edge{
-				Node1: Node{NodeId: i},
-				Node2: Node{NodeId: j},
+				Node1: Node(i),
+				Node2: Node(j),
 			})
 		}
 	}
@@ -22,8 +22,8 @@ func LadderGraph(nodesInSinglePath int) (g UndirectedGraph) {
 	}
 	for i := 0; i <= nodesInSinglePath; i++ {
 		g.AddEdge(Edge{
-			Node1: Node{NodeId: i},
-			Node2: Node{NodeId: i + nodesInSinglePath},
+			Node1: Node(i),
+			Node2: Node(i + nodesInSinglePath),
 		})
 	}
 	return g
@@ -33,12 +33,11 @@ func LadderGraph(nodesInSinglePath int) (g UndirectedGraph) {
 func CircularLadderGraph(nodesInSinglePath int) (g UndirectedGraph) {
 	g = LadderGraph(nodesInSinglePath)
 	g.AddEdge(Edge{
-		Node1: Node{},
-		Node2: Node{NodeId: nodesInSinglePath - 1},
+		Node2: Node(nodesInSinglePath - 1),
 	})
 	g.AddEdge(Edge{
-		Node1: Node{NodeId: nodesInSinglePath},
-		Node2: Node{NodeId: 2*nodesInSinglePath - 1},
+		Node1: Node(nodesInSinglePath),
+		Node2: Node(2*nodesInSinglePath - 1),
 	})
 	return g
 }

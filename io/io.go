@@ -50,7 +50,7 @@ func FromAdjacencyList(reader io.Reader) {
 			return
 		}
 		slog.Info(fmt.Sprintf("read: %+v", read))
-		g.AddEdgesFromIntEdgeList(lineCount, lineToList(read))
+		g.AddEdgesFromIntEdgeList(model.Node(lineCount), lineToList(read))
 		lineCount++
 	}
 
@@ -58,14 +58,14 @@ func FromAdjacencyList(reader io.Reader) {
 	slog.Info(fmt.Sprintf("graph: %+v", g))
 }
 
-func lineToList(values []string) (integers []int) {
-	integers = make([]int, len(values))
+func lineToList(values []string) (integers []model.Node) {
+	integers = make([]model.Node, len(values))
 	for index, value := range values {
 		valueInt, err := strconv.Atoi(value)
 		if err != nil {
 			panic(err)
 		}
-		integers[index] = valueInt
+		integers[index] = model.Node(valueInt)
 	}
 	return
 }
