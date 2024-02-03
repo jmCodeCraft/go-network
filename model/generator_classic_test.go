@@ -1,6 +1,7 @@
 package model
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -56,4 +57,56 @@ func TestCompleteGraph(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestLadderGraph(t *testing.T) {
+	// Test case 1: Ladder graph with 2 nodes in each path
+	result := LadderGraph(2)
+	expected := &UndirectedGraph{
+		Nodes: map[Node]bool{Node(0): true, Node(1): true, Node(2): true, Node(3): true},
+		Edges: map[Node][]Node{
+			Node(0): {Node(1)},
+			Node(1): {Node(0), Node(2)},
+			Node(2): {Node(1), Node(3)},
+			Node(3): {Node(2)},
+		},
+	}
+	if result.NumberOfEdges() != 2*len(result.Nodes) {
+		t.Errorf("graph has no 2n vertices. Num of edges: %v; num of nodes: %v", result.NumberOfEdges(), len(result.Nodes))
+	}
+	if !reflect.DeepEqual(result, expected) {
+		t.Errorf("Expected\n%v\n, but got\n%v", expected, result)
+	}
+
+	// Test case 2: Ladder graph with 3 nodes in each path
+	result = LadderGraph(3)
+	expected = &UndirectedGraph{
+		Nodes: map[Node]bool{Node(0): true, Node(1): true, Node(2): true, Node(3): true, Node(4): true, Node(5): true},
+		Edges: map[Node][]Node{
+			Node(0): {Node(1)},
+			Node(1): {Node(0), Node(2)},
+			Node(2): {Node(1), Node(3)},
+			Node(3): {Node(2), Node(4)},
+			Node(4): {Node(3), Node(5)},
+			Node(5): {Node(4)},
+		},
+	}
+	if result.NumberOfEdges() != 2*len(result.Nodes) {
+		t.Errorf("graph has no 2n vertices. Num of edges: %v; num of nodes: %v", result.NumberOfEdges(), len(result.Nodes))
+	}
+	if !reflect.DeepEqual(result, expected) {
+		t.Errorf("Expected\n%v\n, but got\n%v", expected, result)
+	}
+
+	// Test case 3: Ladder graph with 0 nodes in each path (empty graph)
+	result = LadderGraph(0)
+	expected = &UndirectedGraph{
+		Nodes: map[Node]bool{},
+		Edges: map[Node][]Node{},
+	}
+	if !reflect.DeepEqual(result, expected) {
+		t.Errorf("Expected\n%v\n, but got\n%v", expected, result)
+	}
+
+	// Add more test cases as needed...
 }
