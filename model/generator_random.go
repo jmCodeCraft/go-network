@@ -30,8 +30,8 @@ import (
 // References: [1] Vladimir Batagelj and Ulrik Brandes, "Efficient generation of large random networks", Phys. Rev. E, 71, 036113, 2005.
 func FastGNPRandomGraph(numberOfNodes int, probabilityForEdgeCreation float64) (g UndirectedGraph) {
 	g = UndirectedGraph{}
-	g.Edges = make(map[int][]int)
-	g.Nodes = make(map[int]bool)
+	g.Edges = make(map[Node][]Node)
+	g.Nodes = make(map[Node]bool, numberOfNodes)
 	lp := math.Log(1.0 - probabilityForEdgeCreation)
 	// Nodes in graph are from 0,n-1 (start with v as the second node index).
 	v := 1
@@ -43,7 +43,7 @@ func FastGNPRandomGraph(numberOfNodes int, probabilityForEdgeCreation float64) (
 			w = w - v
 			v = v + 1
 			if v < numberOfNodes {
-				g.AddEdge(Edge{Node{v}, Node{w}})
+				g.AddEdge(Edge{Node(v), Node(w)})
 			}
 		}
 	}
@@ -57,12 +57,12 @@ func FastGNPRandomGraph(numberOfNodes int, probabilityForEdgeCreation float64) (
 // in section 3.4.2 of [1]
 // References: [1] Donald E. Knuth, The Art of Computer Programming,
 // Volume 2/Seminumerical algorithms, Third Edition, Addison-Wesley, 1997.
-func DenseGNMRandomGraph(numberOfNodes int, numberOfEdges int) (g UndirectedGraph) {
+func DenseGNMRandomGraph(numberOfNodes int, numberOfEdges int) (g *UndirectedGraph) {
 	edgesMax := numberOfNodes * (numberOfNodes - 1) // 2
 	if numberOfEdges >= edgesMax {
 		return CompleteGraph(numberOfNodes)
 	} else {
-		g = UndirectedGraph{}
+		g = &UndirectedGraph{}
 	}
 	if numberOfNodes == 1 || numberOfEdges >= edgesMax {
 		return g
@@ -71,7 +71,7 @@ func DenseGNMRandomGraph(numberOfNodes int, numberOfEdges int) (g UndirectedGrap
 	u, v, t, k := 0, 0, 0, 0
 	for {
 		if (t + rand.Int()*(edgesMax-t)) < (numberOfEdges - k) {
-			g.AddEdge(Edge{Node{u}, Node{v}})
+			g.AddEdge(Edge{Node(u), Node(v)})
 			k = k + 1
 			if k == numberOfEdges {
 				return g

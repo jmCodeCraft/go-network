@@ -32,13 +32,13 @@ func (strategy *RandomNodeSampling) Sample(g *UndirectedGraph, samplingRate floa
 	ng = UndirectedGraph{}
 	sampleSize := int(float32(len(g.Nodes)) * samplingRate)
 	for _, node := range rand.Perm(sampleSize) {
-		ng.AddNode(Node{NodeId: node})
+		ng.AddNode(Node(node))
 	}
 	for node1 := range ng.Nodes {
-		for node2 := range g.Edges[node1] {
+		for _, node2 := range g.Edges[node1] {
 			ng.AddEdge(Edge{
-				Node1: Node{node1},
-				Node2: Node{node2},
+				Node1: node1,
+				Node2: node2,
 			})
 		}
 	}
@@ -62,7 +62,7 @@ func (strategy *RandomDegreeNodeSampling) Sample(g *UndirectedGraph, samplingRat
 		}
 		pick := choice.Pick()
 		// todo make sampling without replacement
-		ng.AddNode(Node{pick.(int)})
+		ng.AddNode(Node(pick.(int)))
 	}
 	return ng, nil
 }
