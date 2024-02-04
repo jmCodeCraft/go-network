@@ -11,6 +11,9 @@ type Graph interface {
 	Sample(sampler SamplingStrategy, samplingRate float32) UndirectedGraph
 	NodeDegree(node Node) int
 	NumberOfEdges() int
+	HasNode(node Node) bool
+	RemoveEdge(edge Edge)
+	RemoveNode(node Node)
 }
 
 type Node int
@@ -20,9 +23,28 @@ type Edge struct {
 	Node2 Node
 }
 
+type Components struct {
+	ComponentsArray     [][]Node
+	ComponentsDict      []map[Node]bool
+	BiggestComponentIdx int
+}
+
 type UndirectedGraph struct {
 	Nodes map[Node]bool
 	Edges map[Node][]Node
+}
+
+func (c *Components) AddComponent(component []Node) {
+	c.ComponentsArray = append(c.ComponentsArray, component)
+	componentDict := map[Node]bool{}
+	for i := 0; i < len(component); i++ {
+		componentDict[component[i]] = true
+	}
+	c.ComponentsDict = append(c.ComponentsDict, componentDict)
+
+	if c.BiggestComponentIdx > -1 && len(c.ComponentsArray[c.BiggestComponentIdx]) < len(component) {
+		c.BiggestComponentIdx = len(c.ComponentsArray) - 1
+	}
 }
 
 func (g UndirectedGraph) String() string {
@@ -87,7 +109,7 @@ func (g *UndirectedGraph) GetEdgeTuples() []Edge {
 }
 
 func (g *UndirectedGraph) Sample(sampler SamplingStrategy, samplingRate float32) UndirectedGraph {
-	return sampler.Sample(g, samplingRate)
+	return sampler.SamplingStage(g, samplingRate)
 }
 
 // NumberOfEdges returns the total number of edges in the undirected graph.
@@ -101,4 +123,46 @@ func (g *UndirectedGraph) NumberOfEdges() int {
 
 	// Divide by 2 to account for the fact that each edge is counted twice (undirected graph)
 	return totalEdges / 2
+}
+
+func (g *UndirectedGraph) HasNode(node Node) bool {
+	return g.Nodes[node]
+}
+
+func (g *UndirectedGraph) RemoveEdge(edge Edge) {
+	g.Edges[edge.Node1] = DeleteFromSlice(g.Edges[edge.Node1], edge.Node2)
+	g.Edges[edge.Node2] = DeleteFromSlice(g.Edges[edge.Node2], edge.Node1)
+}
+
+func (g *UndirectedGraph) RemoveNode(node Node) {
+	g.Nodes[node] = false
+	g.Edges[node] = []Node{}
+}
+
+func ConnectedComponents(g UndirectedGraph) (components Components) {
+	visited := map[Node]bool{}
+	components =
+		Components{
+			ComponentsDict:      make([]map[Node]bool, 0),
+			ComponentsArray:     make([][]Node, 0),
+			BiggestComponentIdx: 0,
+		}
+
+	for node := range g.Nodes {
+		if !visited[node] {
+			component := []Node{}
+			stack := []Node{node}
+			for len(stack) > 0 {
+				current := stack[len(stack)-1]
+				stack = stack[:len(stack)-1]
+				component = append(component, current)
+				visited[current] = true
+				for _, child := range g.Edges[current] {
+					stack = append(stack, child)
+				}
+			}
+			components.AddComponent(component)
+		}
+	}
+	return components
 }

@@ -15,3 +15,13 @@ func Range(start int, end int) []int {
 	}
 	return values
 }
+
+func DeleteFromSlice(slice []Node, objectToRemove Node) []Node {
+	newSlice := []Node{}
+	for i := 0; i < len(slice); i++ {
+		if slice[i] != objectToRemove {
+			newSlice = append(newSlice, slice[i])
+		}
+	}
+	return newSlice
+}

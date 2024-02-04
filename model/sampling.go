@@ -8,7 +8,8 @@ import (
 )
 
 type SamplingStrategy interface {
-	Sample(graph *UndirectedGraph, samplingRate float32) UndirectedGraph
+	SamplingStage(graph *UndirectedGraph, howManyToDelete int) *UndirectedGraph
+	Sample(graph *UndirectedGraph, ratioNodesToDelete float32) UndirectedGraph
 }
 
 // supported sampling methods so far
@@ -28,51 +29,62 @@ type ForestFireSampling struct{}
 type FrontierSampling struct{}
 type ExpansionSampling struct{}
 
-func (strategy *RandomNodeSampling) Sample(g *UndirectedGraph, samplingRate float32) (ng UndirectedGraph) {
-	ng = UndirectedGraph{}
-	sampleSize := int(float32(len(g.Nodes)) * samplingRate)
-	for _, node := range rand.Perm(sampleSize) {
-		ng.AddNode(Node(node))
+func (strategy *RandomNodeSampling) SamplingStage(g *UndirectedGraph, howManyToDelete int) (g *UndirectedGraph) {
+	for _, node := range rand.Perm(howManyToDelete) {
+		g.RemoveNode(Node(node))
 	}
-	for node1 := range ng.Nodes {
-		for _, node2 := range g.Edges[node1] {
-			ng.AddEdge(Edge{
-				Node1: node1,
-				Node2: node2,
-			})
-		}
-	}
-	// todo verify if both edges exist in ng
-	return ng
+	return g
 }
 
-func (strategy *RandomDegreeNodeSampling) Sample(g *UndirectedGraph, samplingRate float32) (ng UndirectedGraph, err error) {
-	ng = UndirectedGraph{}
-	sampleSize := int(float32(len(g.Nodes)) * samplingRate)
-
-	var choices []weightedrand.Choice
-	for node := range g.Nodes {
-		choices = append(choices, weightedrand.NewChoice(node, uint(len(g.Edges[node]))))
-	}
-
-	for i := 0; i < sampleSize; i++ {
+func (strategy *RandomDegreeNodeSampling) SamplingStage(g *UndirectedGraph, howMany int) (g *UndirectedGraph, err error) {
+	for i := 0; i < howMany; i++ {
+		var choices []weightedrand.Choice
+		for node := range g.Nodes {
+			choices = append(choices, weightedrand.NewChoice(node, uint(len(g.Edges[node]))))
+		}
 		choice, err := weightedrand.NewChooser(choices...)
 		if err != nil {
 			return ng, fmt.Errorf("error gettint new chooser: %w", err)
 		}
 		pick := choice.Pick()
-		// todo make sampling without replacement
-		ng.AddNode(Node(pick.(int)))
+		nodeToRemove := Node(pick.(int))
+		g.RemoveNode(nodeToRemove)
 	}
-	return ng, nil
+	return g, nil
 }
 
-func (strategy *RandomEdgeSampling) Sample(g *UndirectedGraph, samplingRate float32) (ng UndirectedGraph) {
+func (strategy *RandomEdgeSampling) SamplingStage(g UndirectedGraph, howMany int) (ng UndirectedGraph) {
 	ng, edges := UndirectedGraph{}, g.GetEdgeTuples()
-	sampleSize := int(float32(len(edges)) * samplingRate)
+	sampleSize := len(edges) - howMany
 
 	for _, edgeIndex := range rand.Perm(len(edges))[:sampleSize] {
-		ng.AddEdge(edges[edgeIndex])
+		ng.RemoveEdge(edges[edgeIndex])
 	}
 	return ng
+}
+
+func (strategy *SamplingStrategy) Sample(g *UndirectedGraph, ratioNodesToDelete float32) (ng UndirectedGraph) {
+	ng = UndirectedGraph{} //TODO: deep copy g
+	expectedFinalGraphSize := int(float32(len(ng.Nodes)) * (1 - ratioNodesToDelete))
+
+	for {
+		ng := strategy.SamplingStage(ng, int(0.03*float32(len(ng.Nodes))))
+
+		// We retain the largest connected component and delete the rest
+		components := ConnectedComponents(ng)
+		biggestComponentArray := components.ComponentsArray[components.BiggestComponentIdx]
+		biggestComponentDict := components.ComponentsDict[components.BiggestComponentIdx]
+		for i := 0; i < len(g.Nodes); i++ {
+			if len(biggestComponentArray) > 0 {
+				for node := range ng.Nodes {
+					if !biggestComponentDict[node] {
+						ng.RemoveNode(node)
+					}
+				}
+			}
+		}
+		if len(ng.Nodes) <= expectedFinalGraphSize {
+			break
+		}
+	}
 }
