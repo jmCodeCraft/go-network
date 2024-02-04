@@ -108,8 +108,8 @@ func (g *UndirectedGraph) GetEdgeTuples() []Edge {
 	return edges
 }
 
-func (g *UndirectedGraph) Sample(sampler SamplingStrategy, samplingRate float32) UndirectedGraph {
-	return sampler.SamplingStage(g, samplingRate)
+func (g *UndirectedGraph) Sample(sampler SamplingStrategy, ratioNodesToDelete float32) UndirectedGraph {
+	return sampler.Sample(g, ratioNodesToDelete)
 }
 
 // NumberOfEdges returns the total number of edges in the undirected graph.
