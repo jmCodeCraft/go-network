@@ -1,7 +1,7 @@
 # go-network
 ### The Go-to package for Network Analysis in Go
 
-Go-Network is a Go package for the creation, manipulation, and study of the structure, dynamics, and functions of complex networks.
+Go-Network is a Go package for the creation, manipulation, and study of the structure, dynamics, and functions of complex networks. The implemented methods cover networking (Networking, INFOCOM, SIGCOMM) and data mining/machine learning (KDD, TKDD, ICDE) conferences, workshops, and pieces from prominent journals.
 
 #### Supported graph generation algorithms
 - Classic algorithms
