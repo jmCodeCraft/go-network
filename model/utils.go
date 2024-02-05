@@ -25,3 +25,11 @@ func DeleteFromSlice(slice []Node, objectToRemove Node) []Node {
 	}
 	return newSlice
 }
+
+func GetDictKeys(dict map[Node]bool) []Node {
+	keys := make([]Node, 0, len(dict))
+	for k := range dict {
+		keys = append(keys, k)
+	}
+	return keys
+}
