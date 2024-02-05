@@ -53,11 +53,20 @@ func FromAdjacencyList(reader io.Reader) {
 		g.AddEdgesFromIntEdgeList(model.Node(lineCount), lineToList(read))
 		lineCount++
 	}
-
-	// todo remove this log
-	slog.Info(fmt.Sprintf("graph: %+v", g))
 }
 
+/*
+lineToList converts a slice of strings representing numerical values into a slice of model.Node integers.
+
+Parameters:
+- values: A slice of strings containing numerical values to be converted.
+
+Returns:
+- integers: A slice of model.Node integers representing the converted values.
+
+Panics:
+- If any string in the input slice cannot be converted to an integer, a panic with the corresponding error is triggered.
+*/
 func lineToList(values []string) (integers []model.Node) {
 	integers = make([]model.Node, len(values))
 	for index, value := range values {
