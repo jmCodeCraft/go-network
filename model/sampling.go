@@ -4,16 +4,17 @@ import (
 	"fmt"
 	"math/rand"
 
+	"github.com/jinzhu/copier"
 	"github.com/mroth/weightedrand"
 )
 
 type IDeletionSamplingStrategy interface {
 	SamplingStage(graph *UndirectedGraph, howManyToDelete int) error
-	Sample(graph *UndirectedGraph, sampledGraphSizeRatio float32) (UndirectedGraph, error)
+	Sample(graph *UndirectedGraph, sampledGraphSizeRatio float32) (*UndirectedGraph, error)
 }
 
 type ISamplingStrategy interface {
-	Sample(graph *UndirectedGraph, sampledGraphSizeRatio float32) (UndirectedGraph, error)
+	Sample(graph *UndirectedGraph, sampledGraphSizeRatio float32) (*UndirectedGraph, error)
 }
 
 type DeletionSamplingStrategy struct {
@@ -28,7 +29,7 @@ type SamplingStrategy struct {
 type DeletionRandomNodeSampling struct{ IDeletionSamplingStrategy }       // DONE
 type DeletionRandomDegreeNodeSampling struct{ IDeletionSamplingStrategy } // DONE
 type DeletionRandomEdgeSampling struct{ IDeletionSamplingStrategy }       // DONE
-type DeletionRandomNodeEdgeSampling struct{ IDeletionSamplingStrategy }   //DONE
+type DeletionRandomNodeEdgeSampling struct{ IDeletionSamplingStrategy }   // DONE
 type DeletionHybridSampling struct{ IDeletionSamplingStrategy }
 
 func (strategy *DeletionRandomNodeSampling) SamplingStage(g *UndirectedGraph, howMany int) error {
@@ -102,26 +103,25 @@ func (strategy *DeletionHybridSampling) SamplingStage(g *UndirectedGraph, howMan
 	return nil
 }
 
-func (strategy *DeletionSamplingStrategy) Sample(g *UndirectedGraph, sampledGraphSizeRatio float32) (UndirectedGraph, error) {
-	ng := UndirectedGraph{} //TODO deep copy
-	expectedFinalGraphSize := int(float32(len(g.Nodes)) * sampledGraphSizeRatio)
+func (strategy *DeletionSamplingStrategy) Sample(graph *UndirectedGraph, sampledGraphSizeRatio float32) (*UndirectedGraph, error) {
+	ng := &UndirectedGraph{}
+	// deep copy
+	err := copier.Copy(ng, graph)
+	if err != nil {
+		return nil, fmt.Errorf("error performing deep copy: %w", err)
+	}
+
+	expectedFinalGraphSize := int(float32(len(graph.Nodes)) * sampledGraphSizeRatio)
 
 	for len(ng.Nodes) <= expectedFinalGraphSize {
-		_ = *strategy.IDeletionSamplingStrategy.SamplingStage(&ng, int(0.03*float32(len(ng.Nodes))))
+		err = strategy.IDeletionSamplingStrategy.SamplingStage(ng, int(0.03*float32(len(ng.Nodes))))
+		if err != nil {
+			return nil, fmt.Errorf("error performing sampling stage: %w", err)
+		}
 
 		// We retain the largest connected component and delete the rest
-		components := ConnectedComponents(ng)
-		biggestComponentArray := components.ComponentsArray[components.BiggestComponentIdx]
-		biggestComponentDict := components.ComponentsDict[components.BiggestComponentIdx]
-		for i := 0; i < len(g.Nodes); i++ {
-			if len(biggestComponentArray) > 0 {
-				for node := range ng.Nodes {
-					if !biggestComponentDict[node] {
-						ng.RemoveNode(node)
-					}
-				}
-			}
-		}
+		connectedComponents := ConnectedComponents(ng)
+		ng = connectedComponents.GetBiggestComponent()
 	}
 	return ng, nil
 }
@@ -133,8 +133,8 @@ type NodeSamplingWithContraction struct{ ISamplingStrategy }
 // type RandomPageRankNodeSampling struct{ ISamplingStrategy }
 
 type RandomEdgeSampling struct{ ISamplingStrategy }     // DONE
-type RandomNodeEdgeSampling struct{ ISamplingStrategy } //DONE
-type HybridSampling struct{ ISamplingStrategy }         //DONE
+type RandomNodeEdgeSampling struct{ ISamplingStrategy } // DONE
+type HybridSampling struct{ ISamplingStrategy }         // DONE
 // type InducedRandomEdgeSampling struct{ ISamplingStrategy }
 type EdgeSamplingWithContraction struct{ ISamplingStrategy }
 
@@ -262,22 +262,22 @@ func (strategy *RandomNodeEdgeSampling) Sample(g UndirectedGraph, sampledGraphSi
 	return ng, nil
 }
 
-func (strategy *HybridSampling) Sample(g *UndirectedGraph, sampledGraphSizeRatio float32) (UndirectedGraph, error) {
+func (strategy *HybridSampling) Sample(graph *UndirectedGraph, sampledGraphSizeRatio float32) (*UndirectedGraph, error) {
 	w := float32(0.5)
-	ng := UndirectedGraph{
+	ng := &UndirectedGraph{
 		Nodes: map[Node]bool{},
 		Edges: map[Node][]Node{},
 	}
 
-	edges := g.GetEdgeTuples()
-	expectedFinalGraphSize := int(float32(len(g.Nodes)) * sampledGraphSizeRatio)
-	nodes := GetDictKeys(g.Nodes)
+	edges := graph.GetEdgeTuples()
+	expectedFinalGraphSize := int(float32(len(graph.Nodes)) * sampledGraphSizeRatio)
+	nodes := GetDictKeys(graph.Nodes)
 	newNodes := map[Node]bool{}
 
 	for {
 		if rand.Float32() < w {
 			for _, nodeIndex := range rand.Perm(len(nodes))[:1] {
-				nodeEdges := g.Edges[nodes[nodeIndex]]
+				nodeEdges := graph.Edges[nodes[nodeIndex]]
 				for _, edgeIndex := range rand.Perm(len(nodeEdges))[:1] {
 					ng.AddEdge(edges[edgeIndex])
 					newNodes[edges[edgeIndex].Node1] = true

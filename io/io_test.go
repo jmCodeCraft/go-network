@@ -1,15 +1,8 @@
 package io
 
 import (
-	"bytes"
 	"testing"
 )
-
-func TestFromAdjacencyList(t *testing.T) {
-	var buffer bytes.Buffer
-	buffer.WriteString("1,2\n2,3\n3,4\n")
-	FromAdjacencyList(&buffer)
-}
 
 func TestLinetoList(t *testing.T) {
 	list := lineToList([]string{"1", "2", "3"})

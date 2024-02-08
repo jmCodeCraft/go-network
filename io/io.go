@@ -18,11 +18,15 @@ type IGraphFormatReader interface {
 	AddNodesToGraph(g *model.UndirectedGraph, nodes []model.Node)
 }
 
-type AdjacencyListReader struct{ IGraphFormatReader } // DONE
-type EdgeListReader struct{ IGraphFormatReader }      // DONE
+type GraphFormatReader struct {
+	IGraphFormatReader IGraphFormatReader
+}
 
-func (strategy *IGraphFormatReader) Read(reader io.Reader) model.UndirectedGraph {
-	ng := model.UndirectedGraph{}
+type AdjacencyListReader struct{ GraphFormatReader } // DONE
+type EdgeListReader struct{ GraphFormatReader }      // DONE
+
+func (strategy *GraphFormatReader) Read(reader io.Reader) (*model.UndirectedGraph, error) {
+	ng := &model.UndirectedGraph{}
 
 	csvReader := csv.NewReader(reader)
 	lineCount := 0
@@ -32,37 +36,40 @@ func (strategy *IGraphFormatReader) Read(reader io.Reader) model.UndirectedGraph
 			if errors.Is(err, io.EOF) {
 				break
 			}
-			return nil
+			return nil, fmt.Errorf("error reading csv: %w", err)
 		}
 		slog.Info(fmt.Sprintf("read: %+v", read))
 		nodes := lineToList(read)
-		IGraphFormatReader.AddNodesToGraph(ng, nodes)
+		strategy.IGraphFormatReader.AddNodesToGraph(ng, nodes)
 		lineCount++
 	}
-	return ng
+	return ng, nil
 }
 
-func (strategy *IGraphFormatReader) ReadFromFile(filename string) model.UndirectedGraph {
+func (strategy *GraphFormatReader) ReadFromFile(filename string) (*model.UndirectedGraph, error) {
 	readFile, err := os.Open(filename)
 	if err != nil {
-		return fmt.Errorf("error opening file: %w", err)
+		return nil, fmt.Errorf("error opening file: %w", err)
 	}
 
-	ng := strategy.Read(readFile)
+	ng, err := strategy.Read(readFile)
+	if err != nil {
+		return nil, fmt.Errorf("error reading file: %w", err)
+	}
 
 	err = readFile.Close()
 	if err != nil {
-		return fmt.Errorf("error closing file: %w", err)
+		return nil, fmt.Errorf("error closing file: %w", err)
 	}
-	return ng
+	return ng, nil
 }
 
 func (a *AdjacencyListReader) AddNodesToGraph(g *model.UndirectedGraph, nodes []model.Node) {
-	g.AddEdgesFromIntEdgeList(model.Node(nodes[0]), nodes[1:])
+	g.AddEdgesFromIntEdgeList(nodes[0], nodes[1:])
 }
 
 func (a *EdgeListReader) AddNodesToGraph(g *model.UndirectedGraph, nodes []model.Node) {
-	g.AddEdge(model.Edge{nodes[0], nodes[1]})
+	g.AddEdge(model.Edge{Node1: nodes[0], Node2: nodes[1]})
 }
 
 /*

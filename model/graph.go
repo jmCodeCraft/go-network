@@ -2,7 +2,6 @@ package model
 
 import (
 	"fmt"
-	"log/slog"
 	"strings"
 )
 
@@ -10,7 +9,7 @@ type Graph interface {
 	AddEdge(edge Edge)
 	AddNode(node Node)
 	GetEdgeTuples() []Edge
-	Sample(sampler ISamplingStrategy, samplingRate float32) UndirectedGraph
+	Sample(sampler ISamplingStrategy, ratioNodesToDelete float32) (*UndirectedGraph, error)
 	NodeDegree(node Node) int
 	NumberOfEdges() int
 	HasNode(node Node) bool
@@ -25,28 +24,35 @@ type Edge struct {
 	Node2 Node
 }
 
-type Components struct {
-	ComponentsArray     [][]Node
-	ComponentsDict      []map[Node]bool
-	BiggestComponentIdx int
-}
-
 type UndirectedGraph struct {
 	Nodes map[Node]bool
 	Edges map[Node][]Node
 }
 
-func (c *Components) AddComponent(component []Node) {
-	c.ComponentsArray = append(c.ComponentsArray, component)
-	componentDict := map[Node]bool{}
-	for i := 0; i < len(component); i++ {
-		componentDict[component[i]] = true
-	}
-	c.ComponentsDict = append(c.ComponentsDict, componentDict)
+type Components struct {
+	ComponentsArray     []*UndirectedGraph
+	visitedNodes        map[Node]bool
+	BiggestComponentIdx int
+}
 
-	if c.BiggestComponentIdx > -1 && len(c.ComponentsArray[c.BiggestComponentIdx]) < len(component) {
+func (c *Components) AddComponent(component *UndirectedGraph) {
+	c.ComponentsArray = append(c.ComponentsArray, component)
+
+	if c.BiggestComponentIdx < 0 {
+		c.BiggestComponentIdx = 0
+	} else if len(c.ComponentsArray[c.BiggestComponentIdx].Nodes) < len(component.Nodes) {
 		c.BiggestComponentIdx = len(c.ComponentsArray) - 1
 	}
+	for visitedNode := range component.Nodes {
+		c.visitedNodes[visitedNode] = true
+	}
+}
+
+func (c *Components) GetBiggestComponent() *UndirectedGraph {
+	if c.BiggestComponentIdx >= 0 {
+		return c.ComponentsArray[c.BiggestComponentIdx]
+	}
+	return nil
 }
 
 // String returns a string representation of the UndirectedGraph.
@@ -75,14 +81,12 @@ func (g UndirectedGraph) String() string {
 func neighborsString(neighbors []Node) string {
 	var result strings.Builder
 
-	result.WriteString("{")
 	for _, neighbor := range neighbors {
 		result.WriteString(fmt.Sprintf("%v, ", neighbor))
 	}
 	if len(neighbors) > 0 {
 		result.WriteString(result.String()[:result.Len()-2]) // Remove trailing comma and space
 	}
-	result.WriteString("}")
 
 	return result.String()
 }
@@ -121,6 +125,31 @@ func (g *UndirectedGraph) AddEdge(edge Edge) {
 	// Add the edge to the Edges map
 	g.Edges[edge.Node1] = append(g.Edges[edge.Node1], edge.Node2)
 	g.Edges[edge.Node2] = append(g.Edges[edge.Node2], edge.Node1)
+}
+
+func (g *UndirectedGraph) DFS(startNode Node) *UndirectedGraph {
+	if !g.Nodes[startNode] {
+		return &UndirectedGraph{}
+	}
+	visited := make(map[Node]bool)
+	visitedGraph := UndirectedGraph{
+		Nodes: make(map[Node]bool),
+		Edges: make(map[Node][]Node),
+	}
+	g.dfsUtil(startNode, visited, &visitedGraph)
+	return &visitedGraph
+}
+
+func (g *UndirectedGraph) dfsUtil(node Node, visited map[Node]bool, visitedGraph *UndirectedGraph) {
+	visited[node] = true
+	visitedGraph.AddNode(node)
+
+	for _, neighbor := range g.Edges[node] {
+		if !visited[neighbor] {
+			visitedGraph.AddEdge(Edge{Node1: node, Node2: neighbor})
+			g.dfsUtil(neighbor, visited, visitedGraph)
+		}
+	}
 }
 
 /*
@@ -238,7 +267,7 @@ func (g *UndirectedGraph) GetEdgeTuples() []Edge {
 	return edges
 }
 
-func (g *UndirectedGraph) Sample(sampler ISamplingStrategy, ratioNodesToDelete float32) UndirectedGraph {
+func (g *UndirectedGraph) Sample(sampler ISamplingStrategy, ratioNodesToDelete float32) (*UndirectedGraph, error) {
 	return sampler.Sample(g, ratioNodesToDelete)
 }
 
@@ -371,29 +400,62 @@ func (g *UndirectedGraph) RemoveNode(node Node) {
 	delete(g.Edges, node)
 }
 
-func ConnectedComponents(g UndirectedGraph) (components Components) {
-	visited := map[Node]bool{}
+// ConnectedComponents finds the connected components in an undirected graph.
+// It takes an undirected graph (g) as input and returns a Components struct.
+// The Components struct contains an array of UndirectedGraphs, each representing
+// a connected component in the input graph.
+//
+// Parameters:
+//   - g: Pointer to an UndirectedGraph representing the input graph.
+//
+// Returns:
+//   - components: Components struct containing an array of UndirectedGraphs,
+//     each representing a connected component in the input graph. The biggest
+//     connected component's index is stored in BiggestComponentIdx field of
+//     the Components struct.
+//
+// The function iterates through each node in the input graph and performs DFS
+// traversal from each unvisited node to identify connected components. It stores
+// each connected component as an UndirectedGraph in the Components struct.
+//
+// Example usage:
+//
+//	graph := UndirectedGraph{
+//	    Nodes: make(map[Node]bool),
+//	    Edges: make(map[Node][]Node),
+//	}
+//	edges := []Edge{
+//	    {Node1: 1, Node2: 2},
+//	    {Node1: 3, Node2: 4},
+//	    {Node1: 5, Node2: 6},
+//	}
+//	for _, edge := range edges {
+//	    graph.AddEdge(edge)
+//	}
+//	components := ConnectedComponents(&graph)
+//
+//	// Access each connected component
+//	for _, component := range components.ComponentsArray {
+//	    fmt.Println("Connected component:")
+//	    for node := range component.Nodes {
+//	        fmt.Println(node)
+//	    }
+//	}
+func ConnectedComponents(g *UndirectedGraph) (components Components) {
 	components = Components{
-		ComponentsDict:      make([]map[Node]bool, 0),
-		ComponentsArray:     make([][]Node, 0),
-		BiggestComponentIdx: 0,
+		ComponentsArray:     make([]*UndirectedGraph, 0),
+		visitedNodes:        make(map[Node]bool),
+		BiggestComponentIdx: -1,
 	}
 
 	for node := range g.Nodes {
-		if !visited[node] {
-			component := []Node{}
-			stack := []Node{node}
-			for len(stack) > 0 {
-				// todo remove this
-				slog.Info(fmt.Sprintf("%v", len(stack)))
-				current := stack[len(stack)-1]
-				stack = stack[:len(stack)-1]
-				component = append(component, current)
-				visited[current] = true
-				stack = append(stack, g.Edges[current]...)
-			}
-			components.AddComponent(component)
+		if components.visitedNodes[node] {
+			continue
 		}
+		components.visitedNodes[node] = true
+		component := g.DFS(node)
+		components.AddComponent(component)
+
 	}
 	return components
 }
