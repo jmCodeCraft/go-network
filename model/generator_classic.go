@@ -23,17 +23,13 @@ func LadderGraph(nodesInSinglePath int) *UndirectedGraph {
 	}
 
 	// Add rung edges between the two paths of the ladder
-	for i := 0; i < nodesInSinglePath; i++ {
+	for i := 0; i < nodesInSinglePath; i++ { // nodesInSinglePath = 3
 		g.AddEdge(Edge{
 			Node1: Node(i),
 			Node2: Node(i + nodesInSinglePath),
 		})
 
-		if i != nodesInSinglePath-1 {
-			g.AddEdge(Edge{
-				Node1: Node(i + nodesInSinglePath),
-				Node2: Node(i + nodesInSinglePath + 1),
-			})
+		if i != nodesInSinglePath-1 { // i != 2
 			g.AddEdge(Edge{
 				Node1: Node(i),
 				Node2: Node(i + 1),
