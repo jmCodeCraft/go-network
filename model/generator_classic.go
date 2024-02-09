@@ -2,6 +2,22 @@ package model
 
 import "fmt"
 
+// CompleteGraph generates a complete graph with the specified number of nodes.
+// A complete graph is a simple undirected graph where each pair of distinct nodes is connected by a unique edge.
+// The graph is represented by an UndirectedGraph object.
+//
+// Parameters:
+//
+//	numberOfNodes: The number of nodes in the complete graph.
+//
+// Returns:
+//
+//	An UndirectedGraph representing the complete graph with the specified number of nodes.
+//
+// Example:
+//
+//	// Generate a complete graph with 4 nodes
+//	graph := CompleteGraph(4)
 func CompleteGraph(numberOfNodes int) *UndirectedGraph {
 	g := &UndirectedGraph{}
 	for i := 0; i < numberOfNodes; i++ {

@@ -183,6 +183,31 @@ func TestCircularLadderGraph(t *testing.T) {
 	}
 }
 
+func TestCircularLadderGraph_Error(t *testing.T) {
+	testCases := []struct {
+		nodesInSinglePath int
+		expectedError     string
+	}{
+		{nodesInSinglePath: 2, expectedError: "nodesInSinglePath must be at least 3"},
+		{nodesInSinglePath: 0, expectedError: "nodesInSinglePath must be at least 3"},
+		{nodesInSinglePath: -5, expectedError: "nodesInSinglePath must be at least 3"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("NodesInSinglePath=%d", tc.nodesInSinglePath), func(t *testing.T) {
+			graph, err := CircularLadderGraph(tc.nodesInSinglePath)
+			if err == nil {
+				t.Errorf("Expected an error, but got nil")
+			} else if err.Error() != tc.expectedError {
+				t.Errorf("Unexpected error message, expected: %s, got: %s", tc.expectedError, err.Error())
+			}
+			if graph != nil {
+				t.Errorf("Expected nil graph, but got %+v", graph)
+			}
+		})
+	}
+}
+
 // Helper function to validate the generated graph
 func validateGraph(t *testing.T, g *UndirectedGraph, expectedNodes map[Node]bool, expectedEdges map[Node][]Node) {
 	expectedGraph := &UndirectedGraph{Nodes: expectedNodes, Edges: expectedEdges}
