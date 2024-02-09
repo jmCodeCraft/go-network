@@ -414,6 +414,51 @@ func (g *UndirectedGraph) RemoveNode(node Node) {
 	delete(g.Edges, node)
 }
 
+func (g *UndirectedGraph) ContractNode(node Node) {
+	neighbors := g.Edges[node]
+	for i := 0; i < len(neighbors); i++ {
+		for j := i + 1; j < len(neighbors); j++ {
+			g.Edges[neighbors[i]] = append(g.Edges[neighbors[i]], neighbors[j])
+			g.Edges[neighbors[j]] = append(g.Edges[neighbors[j]], neighbors[i])
+		}
+	}
+
+	// Remove the node from the Nodes map
+	delete(g.Nodes, node)
+
+	// Remove the node from the Edges map and update neighbors' adjacency lists
+	for neighbor, edges := range g.Edges {
+		g.Edges[neighbor] = DeleteFromSlice(edges, node)
+	}
+
+	// Delete the entry for the removed node from the Edges map
+	delete(g.Edges, node)
+}
+
+func (g *UndirectedGraph) ContractEdge(edge Edge) {
+	node1 := edge.Node1
+	node2 := edge.Node2
+	//assign all of edges directed towards node1 to node2
+	neighbors := g.Edges[node1]
+	for i := 0; i < len(neighbors); i++ {
+		g.AddEdge(Edge{
+			Node1: neighbors[i],
+			Node2: node2,
+		})
+	}
+
+	// Remove the node from the Nodes map
+	delete(g.Nodes, node1)
+
+	// Remove the node from the Edges map and update neighbors' adjacency lists
+	for neighbor, edges := range g.Edges {
+		g.Edges[neighbor] = DeleteFromSlice(edges, node1)
+	}
+
+	// Delete the entry for the removed node from the Edges map
+	delete(g.Edges, node1)
+}
+
 // ConnectedComponents finds the connected components in an undirected graph.
 // It takes an undirected graph (g) as input and returns a Components struct.
 // The Components struct contains an array of UndirectedGraphs, each representing
