@@ -1,5 +1,7 @@
 package model
 
+import "fmt"
+
 func CompleteGraph(numberOfNodes int) *UndirectedGraph {
 	g := &UndirectedGraph{}
 	for i := 0; i < numberOfNodes; i++ {
@@ -40,15 +42,21 @@ func LadderGraph(nodesInSinglePath int) *UndirectedGraph {
 	return g
 }
 
-// CircularLadderGraph returns the circular ladder graph $CL_n$ of length n
-func CircularLadderGraph(nodesInSinglePath int) *UndirectedGraph {
+// CircularLadderGraph returns the circular ladder graph CL_n of length n
+func CircularLadderGraph(nodesInSinglePath int) (*UndirectedGraph, error) {
+	if nodesInSinglePath < 3 {
+		return nil, fmt.Errorf("nodesInSinglePath must be at least 3")
+	}
+
 	g := LadderGraph(nodesInSinglePath)
+	lastNode := Node(nodesInSinglePath - 1)
 	g.AddEdge(Edge{
-		Node2: Node(nodesInSinglePath - 1),
+		Node1: 0,
+		Node2: lastNode,
 	})
 	g.AddEdge(Edge{
 		Node1: Node(nodesInSinglePath),
-		Node2: Node(2*nodesInSinglePath - 1),
+		Node2: 2*Node(nodesInSinglePath) - 1,
 	})
-	return g
+	return g, nil
 }

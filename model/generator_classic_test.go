@@ -135,67 +135,51 @@ func TestLadderGraph(t *testing.T) {
 }
 
 func TestCircularLadderGraph(t *testing.T) {
-	// Test case 1: Basic Test
-	nodesInSinglePath := 4
-	g := CircularLadderGraph(nodesInSinglePath)
-	expectedNodes := map[Node]bool{1: true, 2: true, 3: true, 4: true, 5: true, 6: true}
-	expectedEdges := map[Node][]Node{
-		1: {2, 6},
-		2: {1, 3},
-		3: {2, 4},
-		4: {3, 5},
-		5: {4, 6},
-		6: {1, 5},
-	}
-	validateGraph(t, g, expectedNodes, expectedEdges)
-
-	// Test case 2: Edge Case Test
-	nodesInSinglePath = 2
-	g = CircularLadderGraph(nodesInSinglePath)
-	expectedNodes = map[Node]bool{1: true, 2: true, 3: true}
-	expectedEdges = map[Node][]Node{
-		1: {2, 3},
-		2: {1, 3},
-		3: {1, 2},
-	}
-	validateGraph(t, g, expectedNodes, expectedEdges)
-
-	// Test case 3: Larger Graph Test
-	nodesInSinglePath = 6
-	g = CircularLadderGraph(nodesInSinglePath)
-	expectedNodes = map[Node]bool{1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true, 8: true, 9: true, 10: true, 11: true, 12: true}
-	expectedEdges = map[Node][]Node{
-		1:  {2, 12},
-		2:  {1, 3},
-		3:  {2, 4},
-		4:  {3, 5},
-		5:  {4, 6},
-		6:  {5, 7},
-		7:  {6, 8},
-		8:  {7, 9},
-		9:  {8, 10},
-		10: {9, 11},
-		11: {10, 12},
-		12: {1, 11},
-	}
-	validateGraph(t, g, expectedNodes, expectedEdges)
-
-	// Test case 4: Connectivity Test
-	// Validate if all nodes are properly connected
-	for node, neighbors := range g.Edges {
-		for _, neighbor := range neighbors {
-			if !contains(g.Edges[neighbor], node) {
-				t.Errorf("Test case 4 failed: Nodes %d and %d are not properly connected", node, neighbor)
-			}
-		}
+	testCases := []struct {
+		nodesInSinglePath int
+		expectedNodes     map[Node]bool
+		expectedEdges     map[Node][]Node
+	}{
+		{
+			nodesInSinglePath: 3,
+			expectedNodes: map[Node]bool{
+				0: true, 1: true, 2: true,
+				3: true, 4: true, 5: true,
+			},
+			expectedEdges: map[Node][]Node{
+				0: {1, 2, 3},
+				1: {0, 2, 4},
+				2: {0, 1, 5},
+				3: {0, 4, 5},
+				4: {1, 3, 5},
+				5: {4, 3, 2},
+			},
+		},
+		{
+			nodesInSinglePath: 4,
+			expectedNodes: map[Node]bool{
+				0: true, 1: true, 2: true, 3: true,
+				4: true, 5: true, 6: true, 7: true,
+			},
+			expectedEdges: map[Node][]Node{
+				0: {1, 4, 3},
+				1: {0, 2, 5},
+				2: {1, 3, 6},
+				3: {0, 2, 7},
+				4: {0, 5, 7},
+				5: {1, 4, 6},
+				6: {2, 5, 7},
+				7: {3, 4, 6},
+			},
+		},
+		// Add more test cases as needed
 	}
 
-	// Test case 5: Node Existence Test
-	// Validate if all expected nodes exist
-	for node := range expectedNodes {
-		if !g.Nodes[node] {
-			t.Errorf("Test case 5 failed: Expected node %d does not exist in the generated graph", node)
-		}
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("NodesInSinglePath=%d", tc.nodesInSinglePath), func(t *testing.T) {
+			graph, _ := CircularLadderGraph(tc.nodesInSinglePath)
+			validateGraph(t, graph, tc.expectedNodes, tc.expectedEdges)
+		})
 	}
 }
 
@@ -205,14 +189,4 @@ func validateGraph(t *testing.T, g *UndirectedGraph, expectedNodes map[Node]bool
 	if !g.Equals(expectedGraph) {
 		t.Errorf("Graph mismatch, expected: %v, got: %v", expectedGraph, g)
 	}
-}
-
-// Helper function to check if a node exists in a slice
-func contains(slice []Node, value Node) bool {
-	for _, item := range slice {
-		if item == value {
-			return true
-		}
-	}
-	return false
 }
