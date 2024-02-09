@@ -111,7 +111,7 @@ func TestLadderGraph(t *testing.T) {
 				6: {5, 1, 7},
 				7: {6, 2, 8},
 				8: {7, 3, 9},
-				9: {8}, // Adjusted to connect with node 8 only
+				9: {8, 4},
 			},
 		},
 		{
@@ -201,23 +201,9 @@ func TestCircularLadderGraph(t *testing.T) {
 
 // Helper function to validate the generated graph
 func validateGraph(t *testing.T, g *UndirectedGraph, expectedNodes map[Node]bool, expectedEdges map[Node][]Node) {
-	// Validate nodes
-	if len(g.Nodes) != len(expectedNodes) {
-		t.Errorf("Nodes mismatch, expected: %v, got: %v", expectedNodes, g.Nodes)
-	} else {
-		for node := range expectedNodes {
-			if !g.Nodes[node] {
-				t.Errorf("Nodes mismatch, expected: %v, got: %v", expectedNodes, g.Nodes)
-			}
-		}
-	}
-	// Validate edges
-	for node, edges := range expectedEdges {
-		for _, edge := range edges {
-			if !contains(g.Edges[node], edge) {
-				t.Errorf("Edges mismatch for node %d, expected: %v, got: %v. Full graph: %v", node, edges, g.Edges[node], g)
-			}
-		}
+	expectedGraph := &UndirectedGraph{Nodes: expectedNodes, Edges: expectedEdges}
+	if !g.Equals(expectedGraph) {
+		t.Errorf("Graph mismatch, expected: %v, got: %v", expectedGraph, g)
 	}
 }
 

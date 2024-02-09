@@ -35,6 +35,40 @@ type Components struct {
 	BiggestComponentIdx int
 }
 
+func (g *UndirectedGraph) Equals(other *UndirectedGraph) bool {
+	if len(g.Nodes) != len(other.Nodes) {
+		return false
+	}
+
+	for node := range g.Nodes {
+		if !other.Nodes[node] {
+			return false
+		}
+	}
+
+	for node, edges := range g.Edges {
+		otherEdges, ok := other.Edges[node]
+		if !ok || len(edges) != len(otherEdges) {
+			return false
+		}
+
+		for _, edge := range edges {
+			found := false
+			for _, otherEdge := range otherEdges {
+				if edge == otherEdge {
+					found = true
+					break
+				}
+			}
+			if !found {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
 func (c *Components) AddComponent(component *UndirectedGraph) {
 	c.ComponentsArray = append(c.ComponentsArray, component)
 
@@ -55,40 +89,20 @@ func (c *Components) GetBiggestComponent() *UndirectedGraph {
 	return nil
 }
 
-// String returns a string representation of the UndirectedGraph.
-func (g UndirectedGraph) String() string {
-	var result strings.Builder
+func (g *UndirectedGraph) String() string {
+	var str strings.Builder
 
-	result.WriteString("Nodes: {")
+	str.WriteString("Nodes:\n")
 	for node := range g.Nodes {
-		result.WriteString(fmt.Sprintf("%v, ", node))
-	}
-	if len(g.Nodes) > 0 {
-		result.WriteString(result.String()[:result.Len()-2]) // Remove trailing comma and space
-	}
-	result.WriteString("}\n")
-
-	result.WriteString("Edges: {\n")
-	for node, neighbors := range g.Edges {
-		result.WriteString(fmt.Sprintf("  %v: {%v}\n", node, neighborsString(neighbors)))
-	}
-	result.WriteString("}")
-
-	return result.String()
-}
-
-// neighborsString returns a formatted string representation of a slice of neighbors.
-func neighborsString(neighbors []Node) string {
-	var result strings.Builder
-
-	for _, neighbor := range neighbors {
-		result.WriteString(fmt.Sprintf("%v, ", neighbor))
-	}
-	if len(neighbors) > 0 {
-		result.WriteString(result.String()[:result.Len()-2]) // Remove trailing comma and space
+		str.WriteString(fmt.Sprintf("%d: true\t", node))
 	}
 
-	return result.String()
+	str.WriteString("\nEdges:\n")
+	for node, edges := range g.Edges {
+		str.WriteString(fmt.Sprintf("%d: %v\n", node, edges))
+	}
+
+	return str.String()
 }
 
 /*

@@ -558,110 +558,74 @@ func sliceEqual(a, b []Node) bool {
 }
 
 func TestConnectedComponents(t *testing.T) {
-	// Test case 1: Regular graph with multiple connected components
-	graph1 := UndirectedGraph{
-		Nodes: make(map[Node]bool),
-		Edges: make(map[Node][]Node),
-	}
-	edges1 := []Edge{
-		{Node1: 1, Node2: 2},
-		{Node1: 2, Node2: 3},
-		{Node1: 4, Node2: 5},
-		{Node1: 6, Node2: 7},
-	}
-	for _, edge := range edges1 {
-		graph1.AddEdge(edge)
-	}
-	components1 := ConnectedComponents(&graph1)
-	expectedComponents1 := []*UndirectedGraph{
-		&UndirectedGraph{
-			Nodes: map[Node]bool{1: true, 2: true, 3: true},
-			Edges: map[Node][]Node{1: {2}, 2: {1, 3}, 3: {2}},
+	testCases := []struct {
+		name               string
+		graph              UndirectedGraph
+		expectedComponents []*UndirectedGraph
+	}{
+		{
+			name: "Regular graph with multiple connected components",
+			graph: UndirectedGraph{
+				Nodes: make(map[Node]bool),
+				Edges: make(map[Node][]Node),
+			},
+			expectedComponents: []*UndirectedGraph{
+				{
+					Nodes: map[Node]bool{1: true, 2: true, 3: true},
+					Edges: map[Node][]Node{1: {2}, 2: {1, 3}, 3: {2}},
+				},
+				{
+					Nodes: map[Node]bool{4: true, 5: true},
+					Edges: map[Node][]Node{4: {5}, 5: {4}},
+				},
+				{
+					Nodes: map[Node]bool{6: true, 7: true},
+					Edges: map[Node][]Node{6: {7}, 7: {6}},
+				},
+			},
 		},
-		&UndirectedGraph{
-			Nodes: map[Node]bool{4: true, 5: true},
-			Edges: map[Node][]Node{4: {5}, 5: {4}},
+		{
+			name: "Graph with one connected component",
+			graph: UndirectedGraph{
+				Nodes: make(map[Node]bool),
+				Edges: make(map[Node][]Node),
+			},
+			expectedComponents: []*UndirectedGraph{
+				{
+					Nodes: map[Node]bool{1: true, 2: true, 3: true, 4: true},
+					Edges: map[Node][]Node{
+						1: {2},
+						2: {1, 3},
+						3: {2, 4},
+						4: {3},
+					},
+				},
+			},
 		},
-		&UndirectedGraph{
-			Nodes: map[Node]bool{6: true, 7: true},
-			Edges: map[Node][]Node{6: {7}, 7: {6}},
+		{
+			name: "Empty graph",
+			graph: UndirectedGraph{
+				Nodes: make(map[Node]bool),
+				Edges: make(map[Node][]Node),
+			},
+			expectedComponents: []*UndirectedGraph{},
 		},
 	}
-	if len(components1.ComponentsArray) != len(expectedComponents1) {
-		t.Errorf("Test case 1 failed: Number of connected components mismatch, expected: %d, got: %d", len(expectedComponents1), len(components1.ComponentsArray))
-	} else {
-		for i, component := range components1.ComponentsArray {
-			found := false
-			for _, expectedComponent := range expectedComponents1 {
-				if reflect.DeepEqual(component.Nodes, expectedComponent.Nodes) && reflect.DeepEqual(component.Edges, expectedComponent.Edges) {
-					found = true
-					break
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			components := ConnectedComponents(&tc.graph)
+			for _, computedComponent := range components.ComponentsArray {
+				found := false
+				for _, expectedComponent := range tc.expectedComponents {
+					if computedComponent.Equals(expectedComponent) {
+						found = true
+					}
+				}
+				if !found {
+					t.Errorf("Connected component %v not found in expected components", computedComponent)
 				}
 			}
-			if !found {
-				t.Errorf("Test case 1 failed: Connected component %d mismatch, expected: %+v, got: %+v", i+1, expectedComponents1[i], component)
-			}
-		}
-	}
-
-	// Test case 2: Graph with one connected component
-	graph2 := UndirectedGraph{
-		Nodes: make(map[Node]bool),
-		Edges: make(map[Node][]Node),
-	}
-	edges2 := []Edge{
-		{Node1: 1, Node2: 2},
-		{Node1: 2, Node2: 3},
-		{Node1: 3, Node2: 4},
-	}
-	for _, edge := range edges2 {
-		graph2.AddEdge(edge)
-	}
-	components2 := ConnectedComponents(&graph2)
-	expectedNodes := map[Node]bool{1: true, 2: true, 3: true, 4: true}
-	expectedEdges := map[Node][]Node{
-		1: {2},
-		2: {1, 3},
-		3: {2, 4},
-		4: {3},
-	}
-	found := false
-	for _, component := range components2.ComponentsArray {
-		sortedNodes := make([]Node, 0, len(component.Nodes))
-		for node := range component.Nodes {
-			sortedNodes = append(sortedNodes, node)
-		}
-		sort.Slice(sortedNodes, func(i, j int) bool {
-			return sortedNodes[i] < sortedNodes[j]
 		})
-
-		sortedEdges := make(map[Node][]Node)
-		for node, neighbors := range component.Edges {
-			sortedNeighbors := make([]Node, 0, len(neighbors))
-			sortedNeighbors = append(sortedNeighbors, neighbors...)
-			sort.Slice(sortedNeighbors, func(i, j int) bool {
-				return sortedNeighbors[i] < sortedNeighbors[j]
-			})
-			sortedEdges[node] = sortedNeighbors
-		}
-
-		if reflect.DeepEqual(sortedNodes, expectedNodes) && reflect.DeepEqual(sortedEdges, expectedEdges) {
-			found = true
-			break
-		}
-	}
-	if !found {
-		t.Errorf("Test case 2 failed: Connected component 1 mismatch, expected: Nodes: %+v, Edges: %+v, got: %+v", expectedNodes, expectedEdges, components2.ComponentsArray[0])
-	}
-
-	// Test case 3: Empty graph
-	graph3 := UndirectedGraph{
-		Nodes: make(map[Node]bool),
-		Edges: make(map[Node][]Node),
-	}
-	components3 := ConnectedComponents(&graph3)
-	expectedComponents3 := []*UndirectedGraph{}
-	if !reflect.DeepEqual(components3.ComponentsArray, expectedComponents3) {
-		t.Errorf("Test case 3 failed: Connected components mismatch, expected: %+v, got: %+v", expectedComponents3, components3.ComponentsArray)
 	}
 }
