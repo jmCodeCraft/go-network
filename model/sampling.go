@@ -108,7 +108,7 @@ func (strategy *DeletionRandomNodeEdgeSampling) SamplingStage(g *UndirectedGraph
 }
 
 func (strategy *DeletionHybridSampling) SamplingStage(g *UndirectedGraph, howManyToDelete int) error {
-	w := float32(0.42) //TODO update
+	w := float32(0.42) // TODO update
 	edges := g.GetEdgeTuples()
 
 	nodes := GetDictKeys(g.Nodes)
@@ -528,32 +528,6 @@ func (strategy *PreservationTopKEdgeSampling) Sample(g UndirectedGraph, sampledG
 	// TODO: where do we get the K parameter?
 	// shall we change the interface to passing sampling parameters object?
 	// and some Factory, to create the appropriate map of parameters
-	ng := UndirectedGraph{
-		Nodes: make(map[Node]bool),
-		Edges: make(map[Node][]Node),
-	}
-
-	for nodeId := range g.Nodes {
-		neighbours := g.Edges[nodeId]
-		weightedNeighbours := make([]WeightedElement, 0)
-		for k := 0; k < len(neighbours); k++ {
-			weightedNeighbours = append(weightedNeighbours, WeightedElement{
-				Payload: neighbours[k],
-				Weight:  float32(g.NodeDegree(neighbours[k])),
-			})
-		}
-		sort.SliceStable(weightedNeighbours, func(i, j int) bool {
-			return weightedNeighbours[i].Weight < weightedNeighbours[j].Weight
-		})
-		weightedNeighbours[0:k]
-	}
-	return ng, nil
-}
-
-func (strategy *PreservationTopKEdgeSampling) Sample(g UndirectedGraph, sampledGraphSizeRatio float32) (UndirectedGraph, error) {
-	// TODO: where do we get the K parameter?
-	// shall we change the interface to passing sampling parameters object?
-	// and some Factory, to create the appropriate map of parameters
 	topK := 5
 	ng := UndirectedGraph{
 		Nodes: make(map[Node]bool),
@@ -575,7 +549,7 @@ func (strategy *PreservationTopKEdgeSampling) Sample(g UndirectedGraph, sampledG
 		for idx := 0; idx < topK; idx++ {
 			ng.AddEdge(Edge{
 				Node1: nodeId,
-				Node2: weightedNeighbours[idx].Payload,
+				Node2: weightedNeighbours[idx].Payload.(Node),
 			})
 		}
 	}

@@ -123,10 +123,10 @@ func TuranGraph(numberOfNodes int, numberOfPartitions int) *UndirectedGraph {
 		}
 	}
 
-	//for nodes in partitions
-	//generate connections to nodes outside the partition
+	// for nodes in partitions
+	// generate connections to nodes outside the partition
 	for p := 0; p < numberOfPartitionsA; p++ {
-		for node, _ := range partitionsA[p] {
+		for node := range partitionsA[p] {
 			for i := 0; i < numberOfNodes; i++ {
 				if !partitionsA[p][Node(i)] {
 					g.AddEdge(Edge{
@@ -139,7 +139,7 @@ func TuranGraph(numberOfNodes int, numberOfPartitions int) *UndirectedGraph {
 	}
 
 	for p := 0; p < numberOfPartitionsB; p++ {
-		for node, _ := range partitionsB[p] {
+		for node := range partitionsB[p] {
 			for i := 0; i < numberOfNodes; i++ {
 				if !partitionsB[p][Node(i)] {
 					g.AddEdge(Edge{
@@ -168,8 +168,10 @@ func NullGraph() *UndirectedGraph {
 }
 
 // TadpoleGraph returns a Tadpole graph consisting of a cycle graph on cycleSize (at least 3) vertices and a path graph of pathSize vertices, connected with a bridge.
-func TadpoleGraph(cycleSize int, pathSize int) *UndirectedGraph {
-	//TODO: cycle size must be greater than 3, otherwise we raise an exception
+func TadpoleGraph(cycleSize int, pathSize int) (*UndirectedGraph, error) {
+	if cycleSize < 3 {
+		return nil, fmt.Errorf("cycle size can't be < 3")
+	}
 	g := &UndirectedGraph{}
 	// generate cycle graph
 	for i := 0; i < cycleSize; i++ {
@@ -184,13 +186,13 @@ func TadpoleGraph(cycleSize int, pathSize int) *UndirectedGraph {
 			Node2: Node(i),
 		})
 	}
-	return g
+	return g, nil
 }
 
 // StarGraph returns a star graph.
 func StarGraph(numberOfNodes int) *UndirectedGraph {
 	g := &UndirectedGraph{}
-	//generate a star graph
+	// generate a star graph
 	for i := 1; i < numberOfNodes; i++ {
 		g.AddEdge(Edge{
 			Node1: Node(0),
@@ -203,7 +205,7 @@ func StarGraph(numberOfNodes int) *UndirectedGraph {
 // PathGraph returns a path graph.
 func PathGraph(numberOfNodes int) *UndirectedGraph {
 	g := &UndirectedGraph{}
-	//generate a path graph
+	// generate a path graph
 	for i := 1; i < numberOfNodes; i++ {
 		g.AddEdge(Edge{
 			Node1: Node(i - 1),
@@ -216,7 +218,7 @@ func PathGraph(numberOfNodes int) *UndirectedGraph {
 // LollipopGraph returns a path graph.
 func LollipopGraph(completeGraphSize int, pathGraphSize int) *UndirectedGraph {
 	g := &UndirectedGraph{}
-	//generate a Lollipop graph
+	// generate a Lollipop graph
 	for i := 0; i < completeGraphSize; i++ {
 		for j := i + 1; j < completeGraphSize; j++ {
 			g.AddEdge(Edge{
@@ -237,7 +239,7 @@ func LollipopGraph(completeGraphSize int, pathGraphSize int) *UndirectedGraph {
 // CycleGraph returns a cyrcle graph.
 func CycleGraph(numberOfNodes int) *UndirectedGraph {
 	g := &UndirectedGraph{}
-	//generate a Cycle graph
+	// generate a Cycle graph
 	for i := 0; i < numberOfNodes; i++ {
 		g.AddEdge(Edge{
 			Node1: Node(i),
@@ -250,7 +252,7 @@ func CycleGraph(numberOfNodes int) *UndirectedGraph {
 // CirculantGraph returns a circulant graph of n nodes and .
 func CirculantGraph(numberOfNodes int, offset int) *UndirectedGraph {
 	g := &UndirectedGraph{}
-	//generate a Circulant graph
+	// generate a Circulant graph
 	for i := 0; i < numberOfNodes; i++ {
 		g.AddEdge(Edge{
 			Node1: Node(i),
@@ -261,4 +263,4 @@ func CirculantGraph(numberOfNodes int, offset int) *UndirectedGraph {
 	return g
 }
 
-//TODO: balanced tree, binomial tree, barbell graph, complete multipartite graph, dorogovtsev goltsev mendes graph, full rary tree
+// TODO: balanced tree, binomial tree, barbell graph, complete multipartite graph, dorogovtsev goltsev mendes graph, full rary tree

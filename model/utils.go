@@ -1,7 +1,7 @@
 package model
 
-type WeightedElement[T any] struct {
-	Payload T
+type WeightedElement struct {
+	Payload any
 	Weight  float32
 }
 
