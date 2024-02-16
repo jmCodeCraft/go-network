@@ -39,6 +39,8 @@ Go-Network is a Go package for the creation, manipulation, and study of the stru
 
 Thank you for considering contributing to our project! Before you start, please take a moment to read the following guidelines.
 
+You can join our Slack channel [here](https://join.slack.com/t/go-networkworkspace/shared_invite/zt-2c6zzo6hy-xmbwJrly~nIobfqsVxRbpg).
+
 ## Version Support
 
 Our project supports features for Go 1.21 and above. Please ensure that any contributions adhere to this version requirement.
