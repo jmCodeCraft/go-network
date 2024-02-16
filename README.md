@@ -5,8 +5,10 @@ Go-Network is a Go package for the creation, manipulation, and study of the stru
 
 #### Supported graph generation algorithms
 - Classic algorithms
-  - [Complete graph]()
   - [Circular ladder graph]()
+  - [Circulant graph]()
+  - [Complete graph]()
+  - [Cycle graph]()
   - [Empty graph]()
   - [Ladder graph]()
   - [Lollipop graph]()

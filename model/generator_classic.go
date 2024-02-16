@@ -234,7 +234,7 @@ func LollipopGraph(completeGraphSize int, pathGraphSize int) *UndirectedGraph {
 	return g
 }
 
-// CycleGraph returns a path graph.
+// CycleGraph returns a cyrcle graph.
 func CycleGraph(numberOfNodes int) *UndirectedGraph {
 	g := &UndirectedGraph{}
 	//generate a Cycle graph
@@ -247,4 +247,18 @@ func CycleGraph(numberOfNodes int) *UndirectedGraph {
 	return g
 }
 
-//balanced tree, binomial tree, barbell graph, complete multipartite graph, circulant graph, dorogovtsev goltsev mendes graph, full rary tree
+// CirculantGraph returns a circulant graph of n nodes and .
+func CirculantGraph(numberOfNodes int, offset int) *UndirectedGraph {
+	g := &UndirectedGraph{}
+	//generate a Circulant graph
+	for i := 0; i < numberOfNodes; i++ {
+		g.AddEdge(Edge{
+			Node1: Node(i),
+			Node2: Node((i + offset) % numberOfNodes),
+		})
+	}
+
+	return g
+}
+
+//balanced tree, binomial tree, barbell graph, complete multipartite graph, dorogovtsev goltsev mendes graph, full rary tree
