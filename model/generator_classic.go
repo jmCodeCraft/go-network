@@ -76,3 +76,89 @@ func CircularLadderGraph(nodesInSinglePath int) (*UndirectedGraph, error) {
 	})
 	return g, nil
 }
+
+// WheelGraph returns the wheel graph
+func WheelGraph(numberOfNodes int) *UndirectedGraph {
+	g := &UndirectedGraph{}
+	g.AddNode(0)
+	for i := 1; i < numberOfNodes; i++ {
+		g.AddEdge(Edge{
+			Node1: Node(i - 1),
+			Node2: Node(i),
+		})
+		g.AddEdge(Edge{
+			Node1: Node(0),
+			Node2: Node(i),
+		})
+	}
+	return g
+}
+
+// TuranGraph returns the Turán graph
+func TuranGraph(numberOfNodes int, numberOfPartitions int) *UndirectedGraph {
+	g := &UndirectedGraph{}
+
+	numberOfPartitionsA := numberOfPartitions - (numberOfNodes % numberOfPartitions)
+	sizeOfPartitionsA := numberOfNodes / numberOfPartitions
+	numberOfPartitionsB := numberOfNodes % numberOfPartitions
+	sizeOfPartitionsB := numberOfNodes / (numberOfPartitions + 1)
+
+	partitionsA := make(map[int]map[Node]bool, 0)
+	partitionsB := make(map[int]map[Node]bool, 0)
+
+	nodeId := 0
+	for p := 0; p < numberOfPartitionsA; p++ {
+		for n := 0; n < sizeOfPartitionsA; n++ {
+			g.AddNode(Node(nodeId))
+			partitionsA[p][Node(nodeId)] = true
+			nodeId = nodeId + 1
+		}
+	}
+
+	for p := 0; p < numberOfPartitionsB; p++ {
+		for n := 0; n < sizeOfPartitionsB; n++ {
+			g.AddNode(Node(nodeId))
+			partitionsB[p][Node(nodeId)] = true
+			nodeId = nodeId + 1
+		}
+	}
+
+	//for nodes in partitions
+	//generate connections to nodes outside the partition
+	for p := 0; p < numberOfPartitionsA; p++ {
+		for node, _ := range partitionsA[p] {
+			for i := 0; i < numberOfNodes; i++ {
+				if !partitionsA[p][Node(i)] {
+					g.AddEdge(Edge{
+						Node1: node,
+						Node2: Node(i),
+					})
+				}
+			}
+		}
+	}
+
+	for p := 0; p < numberOfPartitionsB; p++ {
+		for node, _ := range partitionsB[p] {
+			for i := 0; i < numberOfNodes; i++ {
+				if !partitionsB[p][Node(i)] {
+					g.AddEdge(Edge{
+						Node1: node,
+						Node2: Node(i),
+					})
+				}
+			}
+		}
+	}
+
+	return g
+}
+
+// TrivialGraph returns a graph with one node (with label 0) and no edges
+func TrivialGraph() *UndirectedGraph {
+	g := &UndirectedGraph{}
+	g.AddNode(0)
+	return g
+}
+
+//balanced tree, binomial tree, barbell graph, complete multipartite graph, circulant graph, cycle graph, dorogovtsev goltsev mendes graph, full rary tree, lollipop graph, path graph, star graph, tadpole graph

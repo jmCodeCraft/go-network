@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"math/rand"
+	"sort"
 
 	"github.com/jinzhu/copier"
 	"github.com/mroth/weightedrand"
@@ -230,6 +231,7 @@ type PreservationHybridSampling struct{ ISamplingStrategy }
 type PreservationRandomWalkSampling struct{ ISamplingStrategy }
 type PreservationRandomWalkWithJumpSampling struct{ ISamplingStrategy }
 type PreservationRandomWalkWithRestartSampling struct{ ISamplingStrategy }
+type PreservationTopKEdgeSampling struct{ ISamplingStrategy }
 
 type PreservationInducedRandomEdgeSampling struct{ ISamplingStrategy }
 type PreservationSnowballSampling struct{ ISamplingStrategy }
@@ -244,7 +246,7 @@ func (strategy *PreservationRandomNodeSampling) Sample(g UndirectedGraph, sample
 	}
 	expectedFinalGraphSize := int(float32(len(g.Nodes)) * sampledGraphSizeRatio)
 	nodes := GetDictKeys(g.Nodes)
-	selectedNodes := []Node{}
+	var selectedNodes []Node
 
 	for _, node := range rand.Perm(len(nodes))[:expectedFinalGraphSize] {
 		ng.AddNode(nodes[node])
@@ -517,6 +519,64 @@ func (strategy *PreservationRandomWalkWithJumpSampling) Sample(graph UndirectedG
 		}
 		if expectedFinalGraphSize <= len(ng.Nodes) {
 			break
+		}
+	}
+	return ng, nil
+}
+
+func (strategy *PreservationTopKEdgeSampling) Sample(g UndirectedGraph, sampledGraphSizeRatio float32) (UndirectedGraph, error) {
+	// TODO: where do we get the K parameter?
+	// shall we change the interface to passing sampling parameters object?
+	// and some Factory, to create the appropriate map of parameters
+	ng := UndirectedGraph{
+		Nodes: make(map[Node]bool),
+		Edges: make(map[Node][]Node),
+	}
+
+	for nodeId := range g.Nodes {
+		neighbours := g.Edges[nodeId]
+		weightedNeighbours := make([]WeightedElement, 0)
+		for k := 0; k < len(neighbours); k++ {
+			weightedNeighbours = append(weightedNeighbours, WeightedElement{
+				Payload: neighbours[k],
+				Weight:  float32(g.NodeDegree(neighbours[k])),
+			})
+		}
+		sort.SliceStable(weightedNeighbours, func(i, j int) bool {
+			return weightedNeighbours[i].Weight < weightedNeighbours[j].Weight
+		})
+		weightedNeighbours[0:k]
+	}
+	return ng, nil
+}
+
+func (strategy *PreservationTopKEdgeSampling) Sample(g UndirectedGraph, sampledGraphSizeRatio float32) (UndirectedGraph, error) {
+	// TODO: where do we get the K parameter?
+	// shall we change the interface to passing sampling parameters object?
+	// and some Factory, to create the appropriate map of parameters
+	topK := 5
+	ng := UndirectedGraph{
+		Nodes: make(map[Node]bool),
+		Edges: make(map[Node][]Node),
+	}
+
+	for nodeId := range g.Nodes {
+		neighbours := g.Edges[nodeId]
+		weightedNeighbours := make([]WeightedElement, 0)
+		for k := 0; k < len(neighbours); k++ {
+			weightedNeighbours = append(weightedNeighbours, WeightedElement{
+				Payload: neighbours[k],
+				Weight:  float32(g.NodeDegree(neighbours[k])),
+			})
+		}
+		sort.SliceStable(weightedNeighbours, func(i, j int) bool {
+			return weightedNeighbours[i].Weight < weightedNeighbours[j].Weight
+		})
+		for idx := 0; idx < topK; idx++ {
+			ng.AddEdge(Edge{
+				Node1: nodeId,
+				Node2: weightedNeighbours[idx].Payload,
+			})
 		}
 	}
 	return ng, nil

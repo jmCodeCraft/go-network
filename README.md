@@ -5,11 +5,14 @@ Go-Network is a Go package for the creation, manipulation, and study of the stru
 
 #### Supported graph generation algorithms
 - Classic algorithms
-  - [Empty graph]()
   - [Complete graph]()
-  - [Ladder graph]()
   - [Circular ladder graph]()
-  - 
+  - [Empty graph]()
+  - [Ladder graph]()
+  - [Trivial graph]()
+  - [Turán graph]()
+  - [Wheel graph]() 
+
 - Random graphs
   - Erdős-Rényi
   - [Dense Random graph]()

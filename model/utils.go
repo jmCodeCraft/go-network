@@ -1,5 +1,10 @@
 package model
 
+type WeightedElement[T any] struct {
+	Payload T
+	Weight  float32
+}
+
 // Pairwise generates a list of edges connecting consecutive nodes in the given list of node IDs.
 // It takes a slice of node IDs and returns a slice of edges, where each edge connects a node
 // with the next node in the input slice.
