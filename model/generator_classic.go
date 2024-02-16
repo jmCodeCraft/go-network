@@ -161,4 +161,90 @@ func TrivialGraph() *UndirectedGraph {
 	return g
 }
 
-//balanced tree, binomial tree, barbell graph, complete multipartite graph, circulant graph, cycle graph, dorogovtsev goltsev mendes graph, full rary tree, lollipop graph, path graph, star graph, tadpole graph
+// NullGraph returns a graph without nodes and edges
+func NullGraph() *UndirectedGraph {
+	g := &UndirectedGraph{}
+	return g
+}
+
+// TadpoleGraph returns a Tadpole graph consisting of a cycle graph on cycleSize (at least 3) vertices and a path graph of pathSize vertices, connected with a bridge.
+func TadpoleGraph(cycleSize int, pathSize int) *UndirectedGraph {
+	//TODO: cycle size must be greater than 3, otherwise we raise an exception
+	g := &UndirectedGraph{}
+	// generate cycle graph
+	for i := 0; i < cycleSize; i++ {
+		g.AddEdge(Edge{
+			Node1: Node(i),
+			Node2: Node((i + 1) % cycleSize),
+		})
+	}
+	for i := cycleSize; i < cycleSize+pathSize; i++ {
+		g.AddEdge(Edge{
+			Node1: Node(i - 1),
+			Node2: Node(i),
+		})
+	}
+	return g
+}
+
+// StarGraph returns a star graph.
+func StarGraph(numberOfNodes int) *UndirectedGraph {
+	g := &UndirectedGraph{}
+	//generate a star graph
+	for i := 1; i < numberOfNodes; i++ {
+		g.AddEdge(Edge{
+			Node1: Node(0),
+			Node2: Node(i),
+		})
+	}
+	return g
+}
+
+// PathGraph returns a path graph.
+func PathGraph(numberOfNodes int) *UndirectedGraph {
+	g := &UndirectedGraph{}
+	//generate a path graph
+	for i := 1; i < numberOfNodes; i++ {
+		g.AddEdge(Edge{
+			Node1: Node(i - 1),
+			Node2: Node(i),
+		})
+	}
+	return g
+}
+
+// LollipopGraph returns a path graph.
+func LollipopGraph(completeGraphSize int, pathGraphSize int) *UndirectedGraph {
+	g := &UndirectedGraph{}
+	//generate a Lollipop graph
+	for i := 0; i < completeGraphSize; i++ {
+		for j := i + 1; j < completeGraphSize; j++ {
+			g.AddEdge(Edge{
+				Node1: Node(i),
+				Node2: Node(j),
+			})
+		}
+	}
+	for i := completeGraphSize; i < completeGraphSize+pathGraphSize; i++ {
+		g.AddEdge(Edge{
+			Node1: Node(i - 1),
+			Node2: Node(i),
+		})
+	}
+	return g
+}
+
+// CycleGraph returns a path graph.
+func CycleGraph(numberOfNodes int) *UndirectedGraph {
+	g := &UndirectedGraph{}
+	//generate a Cycle graph
+	for i := 0; i < numberOfNodes; i++ {
+		g.AddEdge(Edge{
+			Node1: Node(i),
+			Node2: Node((i + 1) % numberOfNodes),
+		})
+	}
+	return g
+}
+
+//balanced tree, binomial tree, barbell graph, complete multipartite graph, circulant graph, dorogovtsev goltsev mendes graph, full rary tree
