@@ -98,7 +98,7 @@ func BarabasiAlbertRandomGraph(numberOfNodes int, numberOfEdges int) (g *Undirec
 			})
 		}
 	}
-	
+
 	return g
 }
 

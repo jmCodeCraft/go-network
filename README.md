@@ -26,6 +26,9 @@ Go-Network is a Go package for the creation, manipulation, and study of the stru
   - [Erdős-Rényi]()
   - [Watts-Strogatz]()
 
+- From time series
+  - [TBD]()
+
 #### Supported graph sampling algorithms
  - [Random Node]()
  - [Random Degree Node]()
