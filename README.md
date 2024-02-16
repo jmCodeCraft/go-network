@@ -21,9 +21,10 @@ Go-Network is a Go package for the creation, manipulation, and study of the stru
   - [Wheel graph]() 
 
 - Random graphs
-  - Erdős-Rényi
+  - [Barabasi-Albert]()
   - [Dense Random graph]()
-  - 
+  - [Erdős-Rényi]()
+  - [Watts-Strogatz]()
 
 #### Supported graph sampling algorithms
  - [Random Node]()

@@ -85,3 +85,62 @@ func DenseGNMRandomGraph(numberOfNodes int, numberOfEdges int) (g *UndirectedGra
 		}
 	}
 }
+
+func BarabasiAlbertRandomGraph(numberOfNodes int, numberOfEdges int) (g *UndirectedGraph) {
+	g = &UndirectedGraph{}
+	// generate a Barabasi-Albert graph
+	for i := numberOfEdges / 2; i < numberOfNodes; i++ {
+		for j := 0; j < numberOfEdges; j++ {
+			neighbor := (i + j - numberOfEdges/2) % numberOfNodes
+			g.AddEdge(Edge{
+				Node1: Node(i),
+				Node2: Node(neighbor),
+			})
+		}
+	}
+	
+	return g
+}
+
+func WattsStrogatzRandomGraph(numberOfNodes int, nearestNeighboursCount int, edgeRewiringProbability float32) (g *UndirectedGraph) {
+	g = &UndirectedGraph{}
+	// generate a Watts Strogatz graph
+	g.Nodes = make(map[Node]bool)
+	g.Edges = make(map[Node][]Node)
+
+	// create nodes
+	for i := 0; i < numberOfNodes; i++ {
+		g.AddNode(Node(i))
+	}
+
+	// create initial regular ring lattice
+	for i := 0; i < numberOfNodes; i++ {
+		for j := 1; j <= nearestNeighboursCount/2; j++ {
+			neighbor := (i + j) % numberOfNodes
+			g.AddEdge(Edge{
+				Node1: Node(i),
+				Node2: Node(neighbor),
+			})
+		}
+	}
+
+	// rewire edges with probability
+	for i := 0; i < numberOfNodes; i++ {
+		for j := 1; j <= nearestNeighboursCount/2; j++ {
+			if rand.Float32() < edgeRewiringProbability {
+				neighbor := (i + j) % numberOfNodes
+				newNeighbor := Node(rand.Intn(numberOfNodes))
+				g.RemoveEdge(Edge{
+					Node1: Node(i),
+					Node2: Node(neighbor),
+				})
+				g.AddEdge(Edge{
+					Node1: Node(i),
+					Node2: newNeighbor,
+				})
+			}
+		}
+	}
+
+	return g
+}
