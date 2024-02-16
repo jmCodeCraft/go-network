@@ -261,4 +261,4 @@ func CirculantGraph(numberOfNodes int, offset int) *UndirectedGraph {
 	return g
 }
 
-//balanced tree, binomial tree, barbell graph, complete multipartite graph, dorogovtsev goltsev mendes graph, full rary tree
+//TODO: balanced tree, binomial tree, barbell graph, complete multipartite graph, dorogovtsev goltsev mendes graph, full rary tree
