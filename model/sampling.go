@@ -26,7 +26,9 @@ type SamplingStrategy struct {
 	ISamplingStrategy ISamplingStrategy
 }
 
-// supported sampling methods so far
+/*
+DELETION GRAPH SAMPLING METHODS
+*/
 type DeletionRandomNodeSampling struct{ IDeletionSamplingStrategy }
 type DeletionRandomNodeNeighbourSampling struct{ IDeletionSamplingStrategy }
 type DeletionInclusiveRandomNodeNeighbourSampling struct{ IDeletionSamplingStrategy }
@@ -219,6 +221,10 @@ func (strategy *DeletionSamplingStrategy) Sample(graph *UndirectedGraph, sampled
 	return ng, nil
 }
 
+/*
+	PRESERVATION GRAPH SAMPLING METHODS
+*/
+
 type PreservationRandomNodeSampling struct{ ISamplingStrategy }
 type PreservationRandomNodeNeighbourSampling struct{ ISamplingStrategy }
 type PreservationInclusiveRandomNodeNeighbourSampling struct{ ISamplingStrategy }
@@ -232,12 +238,6 @@ type PreservationRandomWalkSampling struct{ ISamplingStrategy }
 type PreservationRandomWalkWithJumpSampling struct{ ISamplingStrategy }
 type PreservationRandomWalkWithRestartSampling struct{ ISamplingStrategy }
 type PreservationTopKEdgeSampling struct{ ISamplingStrategy }
-
-type PreservationInducedRandomEdgeSampling struct{ ISamplingStrategy }
-type PreservationSnowballSampling struct{ ISamplingStrategy }
-type PreservationForestFireSampling struct{ ISamplingStrategy }
-type PreservationFrontierSampling struct{ ISamplingStrategy }
-type PreservationExpansionSampling struct{ ISamplingStrategy }
 
 func (strategy *PreservationRandomNodeSampling) Sample(g UndirectedGraph, sampledGraphSizeRatio float32) (UndirectedGraph, error) {
 	ng := UndirectedGraph{
@@ -556,6 +556,10 @@ func (strategy *PreservationTopKEdgeSampling) Sample(g UndirectedGraph, sampledG
 	return ng, nil
 }
 
+/*
+	CONTRACTION GRAPH SAMPLING METHODS
+*/
+
 type ContractionRandomNodeSampling struct{ ISamplingStrategy }
 type ContractionRandomNodeNeighbourSampling struct{ ISamplingStrategy }
 type ContractionInclusiveRandomNodeNeighbourSampling struct{ ISamplingStrategy }
@@ -568,12 +572,6 @@ type ContractionRandomWalkWithRestartSampling struct{ ISamplingStrategy }
 type ContractionRandomWalkWithJumpSampling struct{ ISamplingStrategy }
 
 type ContractionPageRankNodeSampling struct{ ISamplingStrategy }
-type ContractionInducedRandomEdgeSampling struct{ ISamplingStrategy }
-
-type ContractionSnowballSampling struct{ ISamplingStrategy }
-type ContractionForestFireSampling struct{ ISamplingStrategy }
-type ContractionFrontierSampling struct{ ISamplingStrategy }
-type ContractionExpansionSampling struct{ ISamplingStrategy }
 
 func (strategy *ContractionRandomNodeSampling) Sample(graph UndirectedGraph, sampledGraphSizeRatio float32) (UndirectedGraph, error) {
 	ng := UndirectedGraph{}
