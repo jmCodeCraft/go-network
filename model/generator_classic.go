@@ -95,57 +95,43 @@ func WheelGraph(numberOfNodes int) *UndirectedGraph {
 }
 
 // TuranGraph returns the Turán graph
-func TuranGraph(numberOfNodes int, numberOfPartitions int) *UndirectedGraph {
-	g := &UndirectedGraph{}
-
-	numberOfPartitionsA := numberOfPartitions - (numberOfNodes % numberOfPartitions)
-	sizeOfPartitionsA := numberOfNodes / numberOfPartitions
-	numberOfPartitionsB := numberOfNodes % numberOfPartitions
-	sizeOfPartitionsB := numberOfNodes / (numberOfPartitions + 1)
-
-	partitionsA := make(map[int]map[Node]bool, 0)
-	partitionsB := make(map[int]map[Node]bool, 0)
-
-	nodeId := 0
-	for p := 0; p < numberOfPartitionsA; p++ {
-		for n := 0; n < sizeOfPartitionsA; n++ {
-			g.AddNode(Node(nodeId))
-			partitionsA[p][Node(nodeId)] = true
-			nodeId = nodeId + 1
-		}
+func TuranGraph(n, r int) *UndirectedGraph {
+	if r <= 0 || n < 0 {
+		return &UndirectedGraph{Nodes: map[Node]bool{}, Edges: map[Node][]Node{}}
 	}
 
-	for p := 0; p < numberOfPartitionsB; p++ {
-		for n := 0; n < sizeOfPartitionsB; n++ {
-			g.AddNode(Node(nodeId))
-			partitionsB[p][Node(nodeId)] = true
-			nodeId = nodeId + 1
-		}
+	g := &UndirectedGraph{
+		Nodes: make(map[Node]bool),
+		Edges: make(map[Node][]Node),
 	}
 
-	// for nodes in partitions
-	// generate connections to nodes outside the partition
-	for p := 0; p < numberOfPartitionsA; p++ {
-		for node := range partitionsA[p] {
-			for i := 0; i < numberOfNodes; i++ {
-				if !partitionsA[p][Node(i)] {
-					g.AddEdge(Edge{
-						Node1: node,
-						Node2: Node(i),
-					})
-				}
-			}
+	// Partition sizes: first 'rem' partitions have size q+1, others have size q.
+	q := n / r
+	rem := n % r
+
+	partitions := make([][]Node, r)
+	id := 0
+	for p := 0; p < r; p++ {
+		size := q
+		if p < rem {
+			size = q + 1
 		}
+		part := make([]Node, 0, size)
+		for i := 0; i < size; i++ {
+			u := Node(id)
+			g.AddNode(u)
+			part = append(part, u)
+			id++
+		}
+		partitions[p] = part
 	}
 
-	for p := 0; p < numberOfPartitionsB; p++ {
-		for node := range partitionsB[p] {
-			for i := 0; i < numberOfNodes; i++ {
-				if !partitionsB[p][Node(i)] {
-					g.AddEdge(Edge{
-						Node1: node,
-						Node2: Node(i),
-					})
+	// Add edges between every pair of *different* partitions (complete r-partite)
+	for a := 0; a < r; a++ {
+		for b := a + 1; b < r; b++ {
+			for _, u := range partitions[a] {
+				for _, v := range partitions[b] {
+					g.AddEdge(Edge{Node1: u, Node2: v})
 				}
 			}
 		}
@@ -153,6 +139,7 @@ func TuranGraph(numberOfNodes int, numberOfPartitions int) *UndirectedGraph {
 
 	return g
 }
+
 
 // TrivialGraph returns a graph with one node (with label 0) and no edges
 func TrivialGraph() *UndirectedGraph {
