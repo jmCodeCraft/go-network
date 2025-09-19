@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 	"sort"
 
@@ -238,6 +239,7 @@ type PreservationRandomWalkSampling struct{ ISamplingStrategy }
 type PreservationRandomWalkWithJumpSampling struct{ ISamplingStrategy }
 type PreservationRandomWalkWithRestartSampling struct{ ISamplingStrategy }
 type PreservationTopKEdgeSampling struct{ ISamplingStrategy }
+type PreservationTopRatioEdgeSampling struct{ ISamplingStrategy }
 
 func (strategy *PreservationRandomNodeSampling) Sample(g UndirectedGraph, sampledGraphSizeRatio float32) (UndirectedGraph, error) {
 	ng := UndirectedGraph{
@@ -556,6 +558,68 @@ func (strategy *PreservationRandomWalkWithJumpSampling) Sample(graph UndirectedG
 	return ng, nil
 }
 
+func (strategy *PreservationTopRatioEdgeSampling) Sample(
+	g UndirectedGraph,
+	sampleNeighborRatio float32, // e.g., 0.3 keeps top 30% per node
+) (UndirectedGraph, error) {
+
+	ng := UndirectedGraph{
+		Nodes: make(map[Node]bool),
+		Edges: make(map[Node][]Node),
+	}
+
+	for u := range g.Nodes {
+		nbrs := g.Edges[u]
+		if len(nbrs) == 0 {
+			continue
+		}
+
+		// Build (neighbor, weight) where weight = neighbor's degree
+		type we struct {
+			v      Node
+			weight float32
+		}
+		ws := make([]we, 0, len(nbrs))
+		for _, v := range nbrs {
+			if v == u { // skip self-loops if any
+				continue
+			}
+			ws = append(ws, we{
+				v:      v,
+				weight: float32(g.NodeDegree(v)),
+			})
+		}
+		if len(ws) == 0 {
+			continue
+		}
+
+		// Sort by weight DESC (keep highest-degree neighbors)
+		sort.SliceStable(ws, func(i, j int) bool { return ws[i].weight > ws[j].weight })
+
+		// Top-K per node, where K = ceil(ratio * deg(u))
+		k := int(math.Ceil(float64(sampleNeighborRatio) * float64(len(ws))))
+		if k < 0 {
+			k = 0
+		}
+		if k > len(ws) {
+			k = len(ws)
+		}
+		if k == 0 {
+			continue
+		}
+
+		// Add the top-K edges (once for undirected graphs)
+		for i := 0; i < k; i++ {
+			v := ws[i].v
+			if !ng.HasEdge(u, v) {
+				ng.AddEdge(Edge{Node1: u, Node2: v})
+			}
+		}
+	}
+
+	return ng, nil
+}
+
 func (strategy *PreservationTopKEdgeSampling) Sample(g UndirectedGraph, sampledGraphSizeRatio float32) (UndirectedGraph, error) {
 	// TODO: where do we get the K parameter?
 	// shall we change the interface to passing sampling parameters object?
@@ -568,6 +632,9 @@ func (strategy *PreservationTopKEdgeSampling) Sample(g UndirectedGraph, sampledG
 
 	for nodeId := range g.Nodes {
 		neighbours := g.Edges[nodeId]
+		if len(neighbours) == 0 {
+			continue
+		}
 		weightedNeighbours := make([]WeightedElement, 0)
 		for k := 0; k < len(neighbours); k++ {
 			weightedNeighbours = append(weightedNeighbours, WeightedElement{
@@ -576,13 +643,20 @@ func (strategy *PreservationTopKEdgeSampling) Sample(g UndirectedGraph, sampledG
 			})
 		}
 		sort.SliceStable(weightedNeighbours, func(i, j int) bool {
-			return weightedNeighbours[i].Weight < weightedNeighbours[j].Weight
+			return weightedNeighbours[i].Weight > weightedNeighbours[j].Weight
 		})
-		for idx := 0; idx < topK; idx++ {
-			ng.AddEdge(Edge{
-				Node1: nodeId,
-				Node2: weightedNeighbours[idx].Payload.(Node),
-			})
+
+		topK_adjusted := min(topK, len(neighbours))
+
+		for idx := 0; idx < topK_adjusted; idx++ {
+			nodeId_1 := nodeId
+			nodeId_2 := weightedNeighbours[idx].Payload.(Node)
+			if !ng.HasEdge(nodeId_1, nodeId_2) {
+				ng.AddEdge(Edge{
+					Node1: nodeId_1,
+					Node2: nodeId_2,
+				})
+			}
 		}
 	}
 	return ng, nil

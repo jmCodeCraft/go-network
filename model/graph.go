@@ -126,6 +126,7 @@ Example:
 
 	fmt.Println(undirectedGraph.Edges) // Output: map[1:[2] 2:[1]]
 */
+
 func (g *UndirectedGraph) AddEdge(edge Edge) {
 	// Ensure the existence of the Edges map
 	if g.Edges == nil {
@@ -136,9 +137,11 @@ func (g *UndirectedGraph) AddEdge(edge Edge) {
 	g.AddNode(edge.Node1)
 	g.AddNode(edge.Node2)
 
-	// Add the edge to the Edges map
-	g.Edges[edge.Node1] = append(g.Edges[edge.Node1], edge.Node2)
-	g.Edges[edge.Node2] = append(g.Edges[edge.Node2], edge.Node1)
+	// Only add if edge doesn’t already exist (undirected)
+	if !g.HasEdge(edge.Node1, edge.Node2) {
+		g.Edges[edge.Node1] = append(g.Edges[edge.Node1], edge.Node2)
+		g.Edges[edge.Node2] = append(g.Edges[edge.Node2], edge.Node1)
+	}
 }
 
 func (g *UndirectedGraph) DFS(startNode Node) *UndirectedGraph {
@@ -369,6 +372,47 @@ func (g *UndirectedGraph) RemoveEdge(edge Edge) {
 	if len(g.Edges[edge.Node2]) > 0 {
 		g.Edges[edge.Node2] = DeleteFromSlice(g.Edges[edge.Node2], edge.Node1)
 	}
+}
+
+/*
+HasEode checks if the UndirectedGraph contains a specific edge.
+
+Parameters:
+- edge: .
+
+Returns:
+- bool: True if the edge exists in the graph, otherwise false.
+
+Description:
+The function returns true if the specified edge is present in the UndirectedGraph, indicating its existence in the graph. Otherwise, it returns false.
+
+Example:
+
+	undirectedGraph := UndirectedGraph{
+		Nodes: map[Node]bool{
+			1: true,
+			2: true,
+			3: true,
+			4: true,
+		},
+		Edges: map[Node][]Node{
+			1: {2, 3, 4},
+			2: {1, 3},
+			3: {1, 2, 4},
+			4: {1, 3},
+		},
+	}
+
+	result1 := undirectedGraph.HasEdge(2,3) // true
+	result2 := undirectedGraph.HasNode(4,2) // false
+*/
+func (g *UndirectedGraph) HasEdge(u, v Node) bool {
+	for _, nb := range g.Edges[u] {
+		if nb == v {
+			return true
+		}
+	}
+	return false
 }
 
 /*
